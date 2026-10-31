@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e8f5e9" />
+      <stop offset="100%" stop-color="#c8e6c9" />
+    </linearGradient>
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#43a047" />
+      <stop offset="100%" stop-color="#2e7d32" />
+    </linearGradient>
+  </defs>
+  <!-- Background with subtle border -->
+  <rect width="400" height="300" rx="12" fill="url(#bgGrad)"/>
+  <rect x="2" y="2" width="396" height="296" rx="10" fill="none" stroke="#a5d6a7" stroke-width="2" stroke-dasharray="6,6"/>
+  
+  <!-- Central Crop / Produce Icon Graphic -->
+  <g transform="translate(200, 130) scale(1.2)">
+    <!-- Basket / Plant base -->
+    <ellipse cx="0" cy="40" rx="45" ry="12" fill="#81c784" opacity="0.4"/>
+    <!-- Leaves / Sprout -->
+    <path d="M 0 30 C -25 20 -40 -10 -20 -35 C 0 -10 5 15 0 30 Z" fill="url(#leafGrad)"/>
+    <path d="M 0 30 C 25 20 40 -10 20 -35 C 0 -10 -5 15 0 30 Z" fill="#66bb6a"/>
+    <path d="M 0 30 C -10 5 -15 -25 0 -45 C 15 -25 10 5 0 30 Z" fill="#81c784"/>
+    <!-- Freshness sparkle -->
+    <circle cx="28" cy="-28" r="4" fill="#ffd54f"/>
+    <circle cx="-25" cy="-20" r="3" fill="#ffd54f"/>
+  </g>
+  
+  <!-- Text Label -->
+  <text x="200" y="220" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="600" fill="#2e7d32">
+    Fresh Farm Produce
+  </text>
+  <text x="200" y="242" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#66bb6a">
+    FarmDirect Marketplace
+  </text>
+</svg>

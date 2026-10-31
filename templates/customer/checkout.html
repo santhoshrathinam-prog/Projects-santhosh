@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout & Demo Payment – FarmDirect{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Breadcrumb & Header -->
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ url_for('cart') }}" class="btn btn-outline-secondary btn-sm me-2">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <h3 class="fw-bold text-dark mb-0">Complete Your FarmDirect Order</h3>
+    </div>
+
+    <!-- Academic Demo Payment Banner -->
+    <div class="alert alert-warning border-warning d-flex align-items-center p-3 mb-4 shadow-sm">
+        <i class="bi bi-shield-exclamation fs-3 text-warning me-3"></i>
+        <div>
+            <h6 class="fw-bold text-dark mb-1">DEMO PAYMENT SYSTEM – Academic Simulation</h6>
+            <p class="small text-dark mb-0">
+                This college mini-project uses a <strong>safe simulated demo payment system</strong>. No real financial transaction will occur, no real money is transferred, and no real card details are collected.
+            </p>
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('place_order') }}" id="checkoutPaymentForm">
+        <div class="row g-4">
+            <!-- Left Column: Delivery & Payment Details -->
+            <div class="col-lg-7">
+                <!-- 1. Delivery Address Confirmation -->
+                <div class="card card-custom p-4 mb-4">
+                    <h5 class="fw-bold text-success mb-3">
+                        <i class="bi bi-geo-alt-fill me-2"></i>1. Confirm Delivery Location
+                    </h5>
+                    
+                    <div class="mb-3">
+                        <label for="delivery_address" class="form-label fw-semibold">Delivery Address <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="delivery_address" name="delivery_address" rows="3" required>{{ customer.delivery_address }}</textarea>
+                        <div class="form-text">Ensure your house number, street, and landmark are accurate for farm delivery partners.</div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="pincode" class="form-label fw-semibold">Postal PIN Code <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="pincode" name="pincode" pattern="[0-9]{6}" maxlength="6" value="{{ customer.pincode }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Customer Contact</label>
+                            <input type="text" class="form-control bg-light" value="{{ customer.phone or session.get('phone', '') }}" disabled>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Payment Method Selection -->
+                <div class="card card-custom p-4">
+                    <h5 class="fw-bold text-success mb-3">
+                        <i class="bi bi-credit-card-2-front-fill me-2"></i>2. Choose Payment Method
+                    </h5>
+
+                    <!-- Payment Method Option 1: Cash on Delivery -->
+                    <div class="form-check payment-option-card p-3 border rounded-3 mb-3 bg-light" id="optCodCard">
+                        <input class="form-check-input ms-0 me-2" type="radio" name="payment_method" id="payment_cod" value="cod" checked>
+                        <label class="form-check-label fw-semibold d-block" for="payment_cod">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-cash-stack text-success me-2 fs-5"></i>Cash on Delivery (COD)</span>
+                                <span class="badge bg-secondary">Payment Pending upon Delivery</span>
+                            </div>
+                            <small class="text-muted fw-normal d-block mt-1">Pay physical cash to the delivery partner when farm items reach your doorstep.</small>
+                        </label>
+                    </div>
+
+                    <!-- Payment Method Option 2: UPI Demo -->
+                    <div class="form-check payment-option-card p-3 border rounded-3 mb-3 bg-light" id="optUpiCard">
+                        <input class="form-check-input ms-0 me-2" type="radio" name="payment_method" id="payment_upi" value="upi">
+                        <label class="form-check-label fw-semibold d-block" for="payment_upi">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-qr-code-scan text-primary me-2 fs-5"></i>UPI – Demo Simulation (GPay / PhonePe / Paytm)</span>
+                                <span class="badge bg-primary">Instant Simulated Payment</span>
+                            </div>
+                            <small class="text-muted fw-normal d-block mt-1">Dynamic demo QR code simulation for instant payment verification in viva.</small>
+                        </label>
+                    </div>
+
+                    <!-- UPI Demo Interface Section (Conditional) -->
+                    <div id="upiDemoSection" class="p-3 border border-primary bg-primary bg-opacity-10 rounded-3 mb-3 d-none">
+                        <div class="text-center">
+                            <span class="badge bg-primary mb-2"><i class="bi bi-phone me-1"></i>DEMO UPI QR CODE</span>
+                            <h6 class="fw-bold text-dark mb-1">Scan this DEMO QR code</h6>
+                            <p class="small text-danger fw-semibold mb-3">
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i>Demo payment only – no real money will be transferred.
+                            </p>
+
+                            <!-- Dynamic Demo SVG QR Code -->
+                            <div class="d-inline-block p-3 bg-white rounded-3 shadow-sm border mb-3 text-center" style="max-width: 220px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="160" height="160">
+                                    <!-- QR Frame & Positioning Patterns -->
+                                    <rect width="200" height="200" fill="#ffffff"/>
+                                    <!-- Top-Left Target -->
+                                    <rect x="10" y="10" width="50" height="50" fill="#1b5e20" rx="6"/>
+                                    <rect x="20" y="20" width="30" height="30" fill="#ffffff" rx="4"/>
+                                    <rect x="27" y="27" width="16" height="16" fill="#1b5e20" rx="2"/>
+                                    <!-- Top-Right Target -->
+                                    <rect x="140" y="10" width="50" height="50" fill="#1b5e20" rx="6"/>
+                                    <rect x="150" y="20" width="30" height="30" fill="#ffffff" rx="4"/>
+                                    <rect x="157" y="27" width="16" height="16" fill="#1b5e20" rx="2"/>
+                                    <!-- Bottom-Left Target -->
+                                    <rect x="10" y="140" width="50" height="50" fill="#1b5e20" rx="6"/>
+                                    <rect x="20" y="150" width="30" height="30" fill="#ffffff" rx="4"/>
+                                    <rect x="27" y="157" width="16" height="16" fill="#1b5e20" rx="2"/>
+                                    
+                                    <!-- Simulated Data Matrix Pixels -->
+                                    <rect x="70" y="15" width="12" height="12" fill="#2e7d32"/>
+                                    <rect x="90" y="25" width="12" height="12" fill="#2e7d32"/>
+                                    <rect x="110" y="15" width="12" height="12" fill="#2e7d32"/>
+                                    <rect x="70" y="45" width="12" height="12" fill="#2e7d32"/>
+                                    <rect x="105" y="45" width="15" height="15" fill="#2e7d32"/>
+                                    <rect x="25" y="75" width="15" height="15" fill="#2e7d32"/>
+                                    <rect x="50" y="75" width="12" height="12" fill="#2e7d32"/>
+                                    <rect x="75" y="75" width="12" height="12" fill="#2e7d32"/>
+                                    <rect x="145" y="75" width="15" height="15" fill="#2e7d32"/>
+                                    <rect x="170" y="75" width="15" height="15" fill="#2e7d32"/>
+                                    <rect x="25" y="105" width="12" height="12" fill="#2e7d32"/>
+                                    <rect x="50" y="105" width="15" height="15" fill="#2e7d32"/>
+                                    <rect x="145" y="105" width="15" height="15" fill="#2e7d32"/>
+                                    <rect x="170" y="105" width="12" height="12" fill="#2e7d32"/>
+                                    <rect x="75" y="145" width="15" height="15" fill="#2e7d32"/>
+                                    <rect x="105" y="145" width="15" height="15" fill="#2e7d32"/>
+                                    <rect x="145" y="145" width="12" height="12" fill="#2e7d32"/>
+                                    <rect x="75" y="170" width="12" height="12" fill="#2e7d32"/>
+                                    <rect x="105" y="170" width="15" height="15" fill="#2e7d32"/>
+                                    <rect x="145" y="170" width="15" height="15" fill="#2e7d32"/>
+                                    <rect x="170" y="170" width="15" height="15" fill="#2e7d32"/>
+
+                                    <!-- Center Rupee / FarmDirect Badge -->
+                                    <circle cx="100" cy="100" r="22" fill="#ffffff" stroke="#1b5e20" stroke-width="2"/>
+                                    <text x="100" y="107" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#1b5e20" text-anchor="middle">₹</text>
+                                </svg>
+                                <div class="mt-2 text-dark small fw-bold">Amount: ₹{{ "%.2f"|format(grand_total) }}</div>
+                                <small class="text-muted" style="font-size: 0.65rem;">UPI ID: farmdirect@demo</small>
+                            </div>
+
+                            <p class="small text-muted mb-0">Click the simulation button below to approve this demo UPI transaction.</p>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method Option 3: Card Demo -->
+                    <div class="form-check payment-option-card p-3 border rounded-3 mb-3 bg-light" id="optCardCard">
+                        <input class="form-check-input ms-0 me-2" type="radio" name="payment_method" id="payment_card" value="card">
+                        <label class="form-check-label fw-semibold d-block" for="payment_card">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-credit-card-2-front text-warning me-2 fs-5"></i>Debit / Credit Card – Demo Simulation</span>
+                                <span class="badge bg-warning text-dark">Simulated Card Payment</span>
+                            </div>
+                            <small class="text-muted fw-normal d-block mt-1">Simulated test card authorization with dummy credentials.</small>
+                        </label>
+                    </div>
+
+                    <!-- Card Demo Interface Section (Conditional) -->
+                    <div id="cardDemoSection" class="p-4 border border-warning bg-warning bg-opacity-10 rounded-3 mb-3 d-none">
+                        <!-- Demo Credentials Box -->
+                        <div class="p-3 bg-white border border-warning rounded-3 mb-3 shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                                <span class="badge bg-warning text-dark"><i class="bi bi-key-fill me-1"></i>TEST / DEMO CREDENTIALS</span>
+                                <button type="button" class="btn btn-outline-success btn-sm py-0 px-2" id="btnAutoFillCard" style="font-size: 0.75rem;">
+                                    <i class="bi bi-magic me-1"></i>Auto-Fill Demo Card
+                                </button>
+                            </div>
+                            <p class="small text-danger fw-bold mb-2" style="font-size: 0.75rem;">
+                                DEMO CARD DETAILS – DO NOT USE FOR REAL PAYMENTS
+                            </p>
+                            <div class="row g-2 small font-monospace text-dark">
+                                <div class="col-sm-6"><strong>Cardholder:</strong> Demo User</div>
+                                <div class="col-sm-6"><strong>Card Number:</strong> 4111 1111 1111 1111</div>
+                                <div class="col-sm-6"><strong>Expiry:</strong> 12/30</div>
+                                <div class="col-sm-6"><strong>CVV:</strong> 123</div>
+                            </div>
+                        </div>
+
+                        <!-- Card Form Inputs -->
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="cardholder_name" class="form-label fw-semibold small">Cardholder Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control form-control-sm" id="cardholder_name" placeholder="e.g. Demo User">
+                            </div>
+                            <div class="col-12">
+                                <label for="card_number" class="form-label fw-semibold small">Card Number (16 Digits) <span class="text-danger">*</span></label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-credit-card"></i></span>
+                                    <input type="text" class="form-control form-control-sm font-monospace" id="card_number" placeholder="4111 1111 1111 1111" maxlength="19">
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <label for="card_expiry" class="form-label fw-semibold small">Expiry (MM/YY) <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control form-control-sm font-monospace text-center" id="card_expiry" placeholder="12/30" maxlength="5">
+                            </div>
+                            <div class="col-6">
+                                <label for="card_cvv" class="form-label fw-semibold small">CVV (3 Digits) <span class="text-danger">*</span></label>
+                                <input type="password" class="form-control form-control-sm font-monospace text-center" id="card_cvv" placeholder="123" maxlength="4">
+                            </div>
+                        </div>
+                        <div id="cardValidationWarning" class="alert alert-danger small py-1 mt-2 d-none"></div>
+                        <small class="text-muted d-block mt-2" style="font-size: 0.7rem;">
+                            <i class="bi bi-lock me-1"></i>Processed locally for academic demonstration. No card credentials are sent to servers or stored in MySQL.
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Order Summary & Dynamic Submit Button -->
+            <div class="col-lg-5">
+                <div class="card card-custom p-4 sticky-top" style="top: 90px;">
+                    <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">Order Items ({{ checkout_items|length }})</h5>
+
+                    <div class="d-flex flex-column gap-2 mb-3" style="max-height: 250px; overflow-y: auto;">
+                        {% for item in checkout_items %}
+                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="{{ get_product_image_url(item.product.image_filename) }}" alt="{{ item.product.product_name }}" class="product-thumb-sm" style="width: 38px; height: 38px;">
+                                    <div>
+                                        <span class="fw-bold text-dark small">{{ item.product.product_name }}</span><br>
+                                        <small class="text-muted">{{ "%.0f"|format(item.quantity) }} {{ item.product.unit }} × ₹{{ "%.2f"|format(item.product.price) }}</small>
+                                    </div>
+                                </div>
+                                <span class="fw-bold text-dark small">₹{{ "%.2f"|format(item.item_total) }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span class="text-muted">Items Subtotal:</span>
+                        <span class="fw-bold">₹{{ "%.2f"|format(subtotal) }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-3 small">
+                        <span class="text-muted">Flat Delivery Fee:</span>
+                        <span class="fw-bold text-success">₹{{ "%.2f"|format(delivery_fee) }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between py-3 border-top border-bottom mb-4">
+                        <span class="fs-5 fw-bold text-dark">Total Amount:</span>
+                        <span class="fs-4 fw-bold text-success">₹{{ "%.2f"|format(grand_total) }}</span>
+                    </div>
+
+                    <!-- Dynamic Submit Button -->
+                    <button type="submit" class="btn btn-farm w-100 py-3 fw-bold fs-5 shadow-sm" id="btnSubmitOrder">
+                        <i class="bi bi-bag-check me-2"></i>Place Order (Cash on Delivery)
+                    </button>
+
+                    <div class="text-center mt-3 small text-muted">
+                        <i class="bi bi-shield-check text-success me-1"></i>Direct farmer-to-consumer digital marketplace
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

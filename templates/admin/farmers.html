@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Farmer Verification – FarmDirect Admin{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold text-dark mb-0">
+                <i class="bi bi-person-check text-success me-2"></i>Farmer Accounts & Verification
+            </h3>
+            <p class="text-muted small mb-0">Verify authentic agricultural producers. Only verified farmers are permitted to add products and sell on the marketplace.</p>
+        </div>
+    </div>
+
+    <!-- Status Filters -->
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a href="{{ url_for('admin_farmers') }}" class="btn btn-sm {% if not request.args.get('status') %}btn-dark{% else %}btn-outline-dark{% endif %} rounded-pill">
+            All Farmers ({{ farmers|length }})
+        </a>
+        <a href="{{ url_for('admin_farmers', status='pending') }}" class="btn btn-sm {% if request.args.get('status') == 'pending' %}btn-warning text-dark{% else %}btn-outline-warning text-dark{% endif %} rounded-pill">
+            Pending Verification
+        </a>
+        <a href="{{ url_for('admin_farmers', status='verified') }}" class="btn btn-sm {% if request.args.get('status') == 'verified' %}btn-success{% else %}btn-outline-success{% endif %} rounded-pill">
+            Verified Farmers
+        </a>
+        <a href="{{ url_for('admin_farmers', status='rejected') }}" class="btn btn-sm {% if request.args.get('status') == 'rejected' %}btn-danger{% else %}btn-outline-danger{% endif %} rounded-pill">
+            Rejected Farmers
+        </a>
+    </div>
+
+    <div class="card card-custom p-4">
+        {% if farmers %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Farmer ID</th>
+                            <th>Farmer Profile & Contact</th>
+                            <th>Farm Name & Address</th>
+                            <th>Location</th>
+                            <th>Farming Type</th>
+                            <th>Verification Status</th>
+                            <th class="text-center">Admin Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for f in farmers %}
+                            <tr>
+                                <td><span class="badge bg-secondary">#{{ f.farmer_id }}</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="{{ get_user_avatar_url(f.profile_image, 'farmer') }}" alt="{{ f.full_name }}" class="avatar-img avatar-sm">
+                                        <div>
+                                            <strong>{{ f.full_name }}</strong><br>
+                                            <small class="text-muted"><i class="bi bi-envelope me-1"></i>{{ f.email }}</small><br>
+                                            <small class="text-muted"><i class="bi bi-telephone me-1"></i>{{ f.phone }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong class="text-success">{{ f.farm_name }}</strong><br>
+                                    <small class="text-muted">{{ f.farm_address }}</small>
+                                </td>
+                                <td><small class="text-muted">{{ f.city }}, {{ f.state }}</small></td>
+                                <td><span class="badge bg-light text-dark border text-capitalize">{{ f.farming_type }}</span></td>
+                                <td>
+                                    {% if f.verification_status == 'verified' %}
+                                        <span class="badge bg-success py-2 px-3"><i class="bi bi-patch-check-fill me-1"></i>Verified</span>
+                                    {% elif f.verification_status == 'pending' %}
+                                        <span class="badge bg-warning text-dark py-2 px-3"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
+                                    {% else %}
+                                        <span class="badge bg-danger py-2 px-3"><i class="bi bi-x-circle me-1"></i>Rejected</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        {% if f.verification_status != 'verified' %}
+                                            <form method="POST" action="{{ url_for('admin_verify_farmer', farmer_id=f.farmer_id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-success" data-confirm="Are you sure you want to verify and approve this farmer to sell produce?" title="Verify Farmer">
+                                                    <i class="bi bi-check-circle me-1"></i>Verify
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                        {% if f.verification_status != 'rejected' %}
+                                            <form method="POST" action="{{ url_for('admin_reject_farmer', farmer_id=f.farmer_id) }}" class="d-inline ms-1">
+                                                <button type="submit" class="btn btn-outline-danger" data-confirm="Are you sure you want to reject this farmer's verification?" title="Reject Farmer">
+                                                    <i class="bi bi-x-circle me-1"></i>Reject
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-person-x display-4 mb-3 d-block"></i>
+                <h5>No Farmers Found for Selected Filter</h5>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

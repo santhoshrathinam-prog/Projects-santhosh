@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ product.product_name }} – FarmDirect{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="d-flex align-items-center mb-3">
+                <a href="{{ url_for('farmer_products') }}" class="btn btn-outline-secondary btn-sm me-2">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <h3 class="fw-bold text-dark mb-0">Edit Produce: {{ product.product_name }}</h3>
+            </div>
+
+            <div class="card card-custom p-4">
+                <form method="POST" action="{{ url_for('farmer_edit_product', product_id=product.product_id) }}" enctype="multipart/form-data">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label for="product_name" class="form-label fw-semibold">Product Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="product_name" name="product_name" value="{{ product.product_name }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="category_id" class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+                            <select class="form-select" id="category_id" name="category_id" required>
+                                {% for cat in categories %}
+                                    <option value="{{ cat.category_id }}" {% if product.category_id == cat.category_id %}selected{% endif %}>
+                                        {{ cat.category_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Product Image Edit / Replace Section -->
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-camera text-success me-1"></i>Product Image
+                            </label>
+                            
+                            <div class="row g-3 align-items-center">
+                                <div class="col-md-4 text-center">
+                                    <p class="small fw-semibold text-muted mb-1">Current Image:</p>
+                                    <div class="p-2 bg-light rounded border">
+                                        <img src="{{ get_product_image_url(product.image_filename) }}" alt="{{ product.product_name }}" class="product-thumb-md mx-auto d-block" style="width: 100px; height: 100px;">
+                                        {% if product.image_filename %}
+                                            <div class="form-check form-switch mt-2 d-inline-block text-start">
+                                                <input class="form-check-input" type="checkbox" role="switch" id="remove_image" name="remove_image" value="1">
+                                                <label class="form-check-label small text-danger" for="remove_image">Remove Image</label>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="col-md-5">
+                                    <label class="form-label small text-muted mb-2">Upload New Image to Replace:</label>
+                                    <div class="photo-source-group p-2 mb-2">
+                                        <div class="d-flex flex-wrap gap-2 mb-2">
+                                            <button type="button" class="btn btn-outline-success btn-sm btn-open-webcam" data-input-target="product_image_edit" data-preview-target="cropEditPreview" data-container-target="cropEditPreviewContainer" data-warning-target="cropEditWarning">
+                                                <i class="bi bi-camera-video-fill me-1"></i>Take Photo (Webcam)
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm btn-trigger-gallery" data-input-target="product_image_edit">
+                                                <i class="bi bi-image me-1"></i>Choose from Gallery
+                                            </button>
+                                        </div>
+                                        <input type="file" class="form-control form-control-sm image-preview-input" id="product_image_edit" name="product_image" accept="image/*" data-preview-target="cropEditPreview" data-preview-container="cropEditPreviewContainer" data-warning-target="cropEditWarning">
+                                    </div>
+                                    <small class="text-muted d-block">Allowed: JPG, PNG, WEBP (Max 5MB)</small>
+                                    <div id="cropEditWarning" class="alert alert-warning small mt-2 d-none"></div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div id="cropEditPreviewContainer" class="image-preview-box d-none p-2 text-center">
+                                        <p class="small fw-semibold text-success mb-1">New Preview:</p>
+                                        <img id="cropEditPreview" src="" alt="New Selection" class="rounded shadow-sm" style="max-height: 90px;">
+                                        <button type="button" class="btn btn-outline-danger btn-sm mt-1 btn-clear-preview py-0 px-2" data-input-target="product_image_edit" data-container-target="cropEditPreviewContainer">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="description" class="form-label fw-semibold">Description / Notes</label>
+                            <textarea class="form-control" id="description" name="description" rows="3">{{ product.description }}</textarea>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="unit" class="form-label fw-semibold">Measurement Unit <span class="text-danger">*</span></label>
+                            <select class="form-select" id="unit" name="unit" required>
+                                <option value="kg" {% if product.unit == 'kg' %}selected{% endif %}>kg (Kilogram)</option>
+                                <option value="litre" {% if product.unit == 'litre' %}selected{% endif %}>litre (Litre)</option>
+                                <option value="dozen" {% if product.unit == 'dozen' %}selected{% endif %}>dozen (Dozen)</option>
+                                <option value="piece" {% if product.unit == 'piece' %}selected{% endif %}>piece (Piece)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="price" class="form-label fw-semibold">Price per Unit (₹) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" step="0.01" min="0" class="form-control" id="price" name="price" value="{{ product.price }}" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="available_quantity" class="form-label fw-semibold">Available Stock Quantity <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" min="0" class="form-control" id="available_quantity" name="available_quantity" value="{{ product.available_quantity }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="harvest_date" class="form-label fw-semibold">Harvest Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="harvest_date" name="harvest_date" value="{{ product.harvest_date }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="product_status" class="form-label fw-semibold">Product Status <span class="text-danger">*</span></label>
+                            <select class="form-select" id="product_status" name="product_status" required>
+                                <option value="available" {% if product.product_status == 'available' %}selected{% endif %}>Available</option>
+                                <option value="out_of_stock" {% if product.product_status == 'out_of_stock' %}selected{% endif %}>Out of Stock</option>
+                                <option value="inactive" {% if product.product_status == 'inactive' %}selected{% endif %}>Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a href="{{ url_for('farmer_products') }}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-farm px-4">
+                            <i class="bi bi-check2 me-1"></i>Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

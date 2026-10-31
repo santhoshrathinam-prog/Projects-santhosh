@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Agricultural Products Marketplace – FarmDirect{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Page Header & Search Filter Bar -->
+    <div class="card card-custom p-4 mb-4">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-4">
+                <h3 class="fw-bold text-success mb-0">
+                    <i class="bi bi-shop me-2"></i>Marketplace
+                </h3>
+                <p class="text-muted small mb-0">Direct fresh harvest from local verified farms</p>
+            </div>
+            
+            <div class="col-lg-8">
+                <form method="GET" action="{{ url_for('products') }}" class="row g-2">
+                    <div class="col-md-5">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control" name="search" placeholder="Search crops, produce..." value="{{ request.args.get('search', '') }}">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <select class="form-select" name="category">
+                            <option value="">All Categories</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat.category_id }}" {% if request.args.get('category') == cat.category_id|string %}selected{% endif %}>
+                                    {{ cat.category_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <select class="form-select" name="sort">
+                            <option value="newest" {% if request.args.get('sort') == 'newest' or not request.args.get('sort') %}selected{% endif %}>Newest</option>
+                            <option value="price_low" {% if request.args.get('sort') == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                            <option value="price_high" {% if request.args.get('sort') == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 text-end mt-2">
+                        <a href="{{ url_for('products') }}" class="btn btn-outline-secondary btn-sm me-1">Clear Filters</a>
+                        <button type="submit" class="btn btn-farm btn-sm px-4">Apply Filters</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Pill Shortcuts -->
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a href="{{ url_for('products') }}" class="btn btn-sm {% if not request.args.get('category') %}btn-success{% else %}btn-outline-success{% endif %} rounded-pill">
+            All Produce
+        </a>
+        {% for cat in categories %}
+            <a href="{{ url_for('products', category=cat.category_id) }}" class="btn btn-sm {% if request.args.get('category') == cat.category_id|string %}btn-success{% else %}btn-outline-success{% endif %} rounded-pill">
+                {{ cat.category_name }}
+            </a>
+        {% endfor %}
+    </div>
+
+    <!-- Products Grid -->
+    <div class="row g-4">
+        {% if products %}
+            {% for prod in products %}
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="card card-custom h-100 d-flex flex-column">
+                        <div class="product-card-img-wrapper">
+                            <a href="{{ url_for('product_details', product_id=prod.product_id) }}" class="w-100 h-100 d-block">
+                                <img src="{{ get_product_image_url(prod.image_filename) }}" class="product-card-img" alt="{{ prod.product_name }}" loading="lazy">
+                            </a>
+                        </div>
+
+                        <div class="card-body d-flex flex-column p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="badge bg-light text-dark border">{{ prod.category_name }}</span>
+                                {% if prod.avg_rating %}
+                                    <span class="small star-rating fw-bold">
+                                        <i class="bi bi-star-fill text-warning"></i> {{ "%.1f"|format(prod.avg_rating) }}
+                                    </span>
+                                {% else %}
+                                    <span class="small text-muted">Fresh</span>
+                                {% endif %}
+                            </div>
+
+                            <h5 class="card-title fw-bold mb-1 text-truncate" title="{{ prod.product_name }}">
+                                <a href="{{ url_for('product_details', product_id=prod.product_id) }}" class="text-decoration-none text-dark">
+                                    {{ prod.product_name }}
+                                </a>
+                            </h5>
+
+                            <!-- Farmer Provenance Mini Badge -->
+                            <div class="farmer-badge-mini mb-2">
+                                <img src="{{ get_user_avatar_url(prod.profile_image, 'farmer') }}" alt="{{ prod.farm_name }}" class="avatar-img" style="width: 22px; height: 22px;">
+                                <span class="text-truncate" style="max-width: 170px;">{{ prod.farm_name }}</span>
+                            </div>
+
+                            <p class="small text-muted flex-grow-1 mb-2">
+                                {{ (prod.description or '')[:65] }}{% if prod.description and prod.description|length > 65 %}...{% endif %}
+                            </p>
+
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <span class="fs-5 fw-bold text-success">₹{{ "%.2f"|format(prod.price) }}</span>
+                                    <span class="text-muted small">/ {{ prod.unit }}</span>
+                                </div>
+                                <small class="text-muted">Stock: {{ "%.0f"|format(prod.available_quantity) }} {{ prod.unit }}</small>
+                            </div>
+
+                            <div class="d-grid gap-2 mt-auto">
+                                {% if session.get('role') == 'customer' %}
+                                    <form method="POST" action="{{ url_for('add_to_cart', product_id=prod.product_id) }}">
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit" class="btn btn-farm btn-sm w-100">
+                                            <i class="bi bi-cart-plus me-1"></i>Add to Cart
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <a href="{{ url_for('product_details', product_id=prod.product_id) }}" class="btn btn-outline-success btn-sm w-100">
+                                        View Details
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-inbox display-4 text-muted mb-3 d-block"></i>
+                <h4 class="fw-bold">No Products Found</h4>
+                <p class="text-muted">Try adjusting your search criteria or selecting a different category.</p>
+                <a href="{{ url_for('products') }}" class="btn btn-farm">View All Products</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

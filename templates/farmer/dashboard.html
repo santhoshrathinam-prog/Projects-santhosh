@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}Farmer Dashboard – FarmDirect{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Farmer Profile & Status Banner -->
+    <div class="card card-custom p-4 mb-4 border-start {% if farmer.verification_status == 'verified' %}border-success{% elif farmer.verification_status == 'pending' %}border-warning{% else %}border-danger{% endif %} border-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="position-relative">
+                    <img src="{{ get_user_avatar_url(farmer.profile_image, 'farmer') }}" alt="{{ farmer.farm_name }}" class="avatar-img avatar-lg">
+                    <button type="button" class="btn btn-sm btn-light border rounded-circle position-absolute bottom-0 end-0 p-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#profilePhotoModal" title="Change Photo">
+                        <i class="bi bi-camera text-success"></i>
+                    </button>
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                        <h3 class="fw-bold text-dark mb-0">{{ farmer.farm_name }}</h3>
+                        {% if farmer.verification_status == 'verified' %}
+                            <span class="badge badge-status-verified"><i class="bi bi-patch-check-fill me-1"></i>Verified Farmer</span>
+                        {% elif farmer.verification_status == 'pending' %}
+                            <span class="badge badge-status-pending"><i class="bi bi-hourglass-split me-1"></i>Verification Pending</span>
+                        {% else %}
+                            <span class="badge badge-status-rejected"><i class="bi bi-x-circle me-1"></i>Verification Rejected</span>
+                        {% endif %}
+                    </div>
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-person me-1"></i>{{ session.get('full_name') }} | 
+                        <i class="bi bi-geo-alt me-1"></i>{{ farmer.farm_address }} | 
+                        <i class="bi bi-flower1 me-1"></i>Farming: <strong class="text-capitalize">{{ farmer.farming_type }}</strong>
+                    </p>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                {% if farmer.verification_status == 'verified' %}
+                    <a href="{{ url_for('farmer_add_product') }}" class="btn btn-farm">
+                        <i class="bi bi-plus-circle me-1"></i>Add New Product
+                    </a>
+                {% else %}
+                    <button class="btn btn-secondary" disabled title="Your account must be verified by admin first">
+                        <i class="bi bi-lock-fill me-1"></i>Add Product (Requires Verification)
+                    </button>
+                {% endif %}
+                <a href="{{ url_for('farmer_products') }}" class="btn btn-outline-success">
+                    <i class="bi bi-boxes me-1"></i>Manage Products
+                </a>
+            </div>
+        </div>
+
+        {% if farmer.verification_status == 'pending' %}
+            <div class="alert alert-warning mt-3 mb-0 py-2 small">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>Notice:</strong> Your farmer account must be verified by the admin before you can add products. Once verified, you will be able to list your harvest.
+            </div>
+        {% elif farmer.verification_status == 'rejected' %}
+            <div class="alert alert-danger mt-3 mb-0 py-2 small">
+                <i class="bi bi-x-circle-fill me-2"></i>
+                <strong>Account Status:</strong> Your farmer verification was rejected by administrator. Please contact support.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Metric Stat Cards with Approval Breakdown -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="stat-card stat-card-blue">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number">{{ stats.total_products }}</div>
+                        <div class="small text-white-50">Total Listed Crops</div>
+                    </div>
+                    <div class="stat-icon"><i class="bi bi-box-seam"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="stat-card stat-card-green">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number">{{ stats.active_products }}</div>
+                        <div class="small text-white-50">Approved & Active</div>
+                    </div>
+                    <div class="stat-icon"><i class="bi bi-check2-circle"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="stat-card stat-card-amber">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number">{{ stats.pending_products }}</div>
+                        <div class="small text-white-50">Pending Approval</div>
+                    </div>
+                    <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="stat-card stat-card-purple">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number">₹{{ "%.0f"|format(stats.total_revenue|default(0)) }}</div>
+                        <div class="small text-white-50">Total Orders Value</div>
+                    </div>
+                    <div class="stat-icon"><i class="bi bi-currency-rupee"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Status & Recent Orders Split -->
+    <div class="row g-4 mb-4">
+        <!-- Recent Crops with Approval Status & Thumbnails -->
+        <div class="col-lg-6">
+            <div class="card card-custom p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-boxes text-success me-2"></i>My Listed Crops Status
+                    </h5>
+                    <a href="{{ url_for('farmer_products') }}" class="btn btn-sm btn-outline-secondary">View Catalog</a>
+                </div>
+
+                {% if recent_products %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 50px;">Image</th>
+                                    <th>Crop Name</th>
+                                    <th>Price / Unit</th>
+                                    <th>Approval Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for prod in recent_products %}
+                                    <tr>
+                                        <td>
+                                            <img src="{{ get_product_image_url(prod.image_filename) }}" alt="{{ prod.product_name }}" class="product-thumb-sm" style="width: 40px; height: 40px;">
+                                        </td>
+                                        <td><strong>{{ prod.product_name }}</strong></td>
+                                        <td>₹{{ "%.2f"|format(prod.price) }} / {{ prod.unit }}</td>
+                                        <td>
+                                            {% if prod.approval_status == 'approved' %}
+                                                <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>Approved</span>
+                                            {% elif prod.approval_status == 'pending' %}
+                                                <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Pending Approval</span>
+                                            {% else %}
+                                                <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Rejected</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted small">
+                        No crops listed yet.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Crop Orders -->
+        <div class="col-lg-6">
+            <div class="card card-custom p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-clock-history text-primary me-2"></i>Recent Crop Orders
+                    </h5>
+                    <a href="{{ url_for('farmer_orders') }}" class="btn btn-sm btn-outline-secondary">View All Orders</a>
+                </div>
+
+                {% if recent_orders %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Customer</th>
+                                    <th>Produce</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ord in recent_orders %}
+                                    <tr>
+                                        <td><strong>#{{ ord.order_id }}</strong></td>
+                                        <td>{{ ord.customer_name }}</td>
+                                        <td>{{ ord.product_name }} ({{ "%.1f"|format(ord.quantity) }} {{ ord.unit }})</td>
+                                        <td><strong class="text-success">₹{{ "%.2f"|format(ord.item_total) }}</strong></td>
+                                        <td>
+                                            <span class="badge badge-status-{{ ord.order_status }} text-capitalize">
+                                                {{ ord.order_status|replace('_', ' ') }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted small">
+                        No customer orders received yet.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

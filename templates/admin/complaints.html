@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Complaints – FarmDirect Admin{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold text-dark mb-0">
+                <i class="bi bi-chat-left-dots text-danger me-2"></i>Customer Complaints Resolution
+            </h3>
+            <p class="text-muted small mb-0">Manage and resolve reported issues regarding deliveries, produce quality, and payment queries</p>
+        </div>
+    </div>
+
+    <!-- Status Filters -->
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a href="{{ url_for('admin_complaints') }}" class="btn btn-sm {% if not request.args.get('status') %}btn-dark{% else %}btn-outline-dark{% endif %} rounded-pill">
+            All Complaints ({{ complaints|length }})
+        </a>
+        <a href="{{ url_for('admin_complaints', status='open') }}" class="btn btn-sm {% if request.args.get('status') == 'open' %}btn-warning text-dark{% else %}btn-outline-warning text-dark{% endif %} rounded-pill">
+            Open
+        </a>
+        <a href="{{ url_for('admin_complaints', status='in_progress') }}" class="btn btn-sm {% if request.args.get('status') == 'in_progress' %}btn-primary{% else %}btn-outline-primary{% endif %} rounded-pill">
+            In Progress
+        </a>
+        <a href="{{ url_for('admin_complaints', status='resolved') }}" class="btn btn-sm {% if request.args.get('status') == 'resolved' %}btn-success{% else %}btn-outline-success{% endif %} rounded-pill">
+            Resolved
+        </a>
+        <a href="{{ url_for('admin_complaints', status='closed') }}" class="btn btn-sm {% if request.args.get('status') == 'closed' %}btn-secondary{% else %}btn-outline-secondary{% endif %} rounded-pill">
+            Closed
+        </a>
+    </div>
+
+    <div class="card card-custom p-4">
+        {% if complaints %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Complaint #</th>
+                            <th>Customer</th>
+                            <th>Related Order</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Current Status</th>
+                            <th>Submitted Date</th>
+                            <th class="text-center" style="min-width: 170px;">Update Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for comp in complaints %}
+                            <tr>
+                                <td><span class="badge bg-secondary">#{{ comp.complaint_id }}</span></td>
+                                <td>
+                                    <strong>{{ comp.customer_name }}</strong><br>
+                                    <small class="text-muted"><i class="bi bi-envelope me-1"></i>{{ comp.customer_email }}</small><br>
+                                    <small class="text-muted"><i class="bi bi-telephone me-1"></i>{{ comp.customer_phone }}</small>
+                                </td>
+                                <td>
+                                    {% if comp.order_id %}
+                                        <a href="{{ url_for('admin_orders') }}" class="badge bg-light text-dark border text-decoration-none">
+                                            Order #{{ comp.order_id }}
+                                        </a>
+                                    {% else %}
+                                        <span class="badge bg-light text-muted border">General</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary text-uppercase">{{ comp.complaint_type|replace('_', ' ') }}</span>
+                                </td>
+                                <td>
+                                    <p class="small text-dark mb-0 text-break" style="max-width: 250px;">{{ comp.description }}</p>
+                                </td>
+                                <td>
+                                    <span class="badge {% if comp.complaint_status == 'resolved' %}bg-success{% elif comp.complaint_status == 'in_progress' %}bg-primary{% elif comp.complaint_status == 'closed' %}bg-dark{% else %}bg-warning text-dark{% endif %} text-capitalize py-2 px-2">
+                                        {{ comp.complaint_status|replace('_', ' ') }}
+                                    </span>
+                                </td>
+                                <td><small class="text-muted">{{ comp.created_at }}</small></td>
+                                <td class="text-center">
+                                    <form method="POST" action="{{ url_for('admin_update_complaint', complaint_id=comp.complaint_id) }}" class="d-flex gap-1 justify-content-center">
+                                        <select class="form-select form-select-sm" name="complaint_status" style="width: auto;">
+                                            <option value="open" {% if comp.complaint_status == 'open' %}selected{% endif %}>Open</option>
+                                            <option value="in_progress" {% if comp.complaint_status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                            <option value="resolved" {% if comp.complaint_status == 'resolved' %}selected{% endif %}>Resolved</option>
+                                            <option value="closed" {% if comp.complaint_status == 'closed' %}selected{% endif %}>Closed</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-farm" title="Save Status">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-chat-heart display-4 mb-3 d-block text-success"></i>
+                <h5>No Complaints Found</h5>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart – FarmDirect{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h3 class="fw-bold text-dark mb-4">
+        <i class="bi bi-cart3 text-success me-2"></i>Your FarmDirect Cart
+    </h3>
+
+    {% if cart_items %}
+        <div class="row g-4">
+            <!-- Cart Items Table -->
+            <div class="col-lg-8">
+                <div class="card card-custom p-4">
+                    <form method="POST" action="{{ url_for('update_cart') }}" id="cartUpdateForm">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 70px;">Image</th>
+                                        <th>Produce & Farm</th>
+                                        <th>Price</th>
+                                        <th style="width: 140px;">Quantity</th>
+                                        <th>Total</th>
+                                        <th class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in cart_items %}
+                                        <tr>
+                                            <td>
+                                                <img src="{{ get_product_image_url(item.product.image_filename) }}" alt="{{ item.product.product_name }}" class="product-thumb-sm">
+                                            </td>
+                                            <td>
+                                                <strong>{{ item.product.product_name }}</strong><br>
+                                                <small class="text-muted"><i class="bi bi-geo-alt me-1 text-success"></i>{{ item.product.farm_name }}</small>
+                                            </td>
+                                            <td><strong>₹{{ "%.2f"|format(item.product.price) }}</strong> / {{ item.product.unit }}</td>
+                                            <td>
+                                                <div class="input-group input-group-sm qty-control-group">
+                                                    <button class="btn btn-outline-secondary qty-btn-minus" type="button">-</button>
+                                                    <input type="number" name="quantity_{{ item.product.product_id }}" class="form-control text-center qty-control-input fw-bold" value="{{ item.quantity }}" min="1" max="{{ item.product.available_quantity }}" step="1">
+                                                    <button class="btn btn-outline-secondary qty-btn-plus" type="button">+</button>
+                                                </div>
+                                                <div class="text-muted" style="font-size: 0.7rem;">Stock: {{ "%.0f"|format(item.product.available_quantity) }} {{ item.product.unit }}</div>
+                                            </td>
+                                            <td><strong class="text-success">₹{{ "%.2f"|format(item.item_total) }}</strong></td>
+                                            <td class="text-center">
+                                                <a href="{{ url_for('remove_from_cart', product_id=item.product.product_id) }}" class="btn btn-outline-danger btn-sm" title="Remove item">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                            <a href="{{ url_for('products') }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-arrow-left me-1"></i>Continue Shopping
+                            </a>
+                            <button type="submit" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-arrow-clockwise me-1"></i>Update Quantities
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Order Summary Card -->
+            <div class="col-lg-4">
+                <div class="card card-custom p-4">
+                    <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">Order Price Summary</h5>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Items Subtotal:</span>
+                        <span class="fw-bold">₹{{ "%.2f"|format(subtotal) }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Flat Delivery Fee:</span>
+                        <span class="fw-bold text-success">₹{{ "%.2f"|format(delivery_fee) }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between py-3 border-top border-bottom mb-4">
+                        <span class="fs-5 fw-bold">Grand Total:</span>
+                        <span class="fs-4 fw-bold text-success">₹{{ "%.2f"|format(grand_total) }}</span>
+                    </div>
+
+                    <a href="{{ url_for('checkout') }}" class="btn btn-farm w-100 py-2 fw-bold fs-6">
+                        Proceed to Checkout <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="card card-custom p-5 text-center">
+            <i class="bi bi-cart-x display-3 text-muted mb-3"></i>
+            <h4 class="fw-bold">Your Cart is Empty</h4>
+            <p class="text-muted">Discover farm-fresh vegetables, fruits, and grains listed by local farmers.</p>
+            <div class="mt-2">
+                <a href="{{ url_for('products') }}" class="btn btn-farm px-4">Browse Marketplace</a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

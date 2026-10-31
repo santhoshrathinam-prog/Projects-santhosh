@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}My Farm Products – FarmDirect{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold text-dark mb-0">
+                <i class="bi bi-box-seam text-success me-2"></i>My Farm Produce Catalog
+            </h3>
+            <p class="text-muted small mb-0">Every product requires <strong>Admin Approval</strong> before it becomes visible to marketplace customers.</p>
+        </div>
+        <div>
+            {% if farmer.verification_status == 'verified' %}
+                <a href="{{ url_for('farmer_add_product') }}" class="btn btn-farm">
+                    <i class="bi bi-plus-circle me-1"></i>Add New Product
+                </a>
+            {% else %}
+                <button class="btn btn-secondary" disabled title="Your account must be verified by admin first">
+                    <i class="bi bi-lock-fill me-1"></i>Add Product (Requires Verification)
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if farmer.verification_status != 'verified' %}
+        <div class="alert alert-warning mb-4">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Action Required:</strong> Your farmer account must be verified by the admin before you can add products.
+        </div>
+    {% endif %}
+
+    <div class="card card-custom p-4">
+        {% if products %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 80px;">Image</th>
+                            <th>Product Details</th>
+                            <th>Category</th>
+                            <th>Price / Unit</th>
+                            <th>Stock</th>
+                            <th>Approval Status</th>
+                            <th>Customer Visibility</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prod in products %}
+                            <tr>
+                                <td>
+                                    <img src="{{ get_product_image_url(prod.image_filename) }}" alt="{{ prod.product_name }}" class="product-thumb-sm">
+                                </td>
+                                <td>
+                                    <strong>{{ prod.product_name }}</strong><br>
+                                    <small class="text-muted text-truncate d-inline-block" style="max-width: 200px;" title="{{ prod.description }}">{{ prod.description }}</small>
+                                </td>
+                                <td><span class="badge bg-light text-dark border">{{ prod.category_name }}</span></td>
+                                <td><strong class="text-success">₹{{ "%.2f"|format(prod.price) }}</strong> / {{ prod.unit }}</td>
+                                <td>
+                                    <span class="{% if prod.available_quantity <= 5 %}text-danger fw-bold{% else %}text-dark{% endif %}">
+                                        {{ "%.0f"|format(prod.available_quantity) }} {{ prod.unit }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if prod.approval_status == 'approved' %}
+                                        <span class="badge bg-success py-2 px-2"><i class="bi bi-check-circle-fill me-1"></i>Approved</span>
+                                    {% elif prod.approval_status == 'pending' %}
+                                        <span class="badge bg-warning text-dark py-2 px-2"><i class="bi bi-hourglass-split me-1"></i>Pending Approval</span>
+                                    {% else %}
+                                        <span class="badge bg-danger py-2 px-2"><i class="bi bi-x-circle me-1"></i>Rejected</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if farmer.verification_status == 'verified' and prod.approval_status == 'approved' and prod.product_status == 'available' %}
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success">
+                                            <i class="bi bi-eye-fill me-1"></i>Visible in Market
+                                        </span>
+                                    {% elif prod.approval_status == 'pending' %}
+                                        <span class="badge bg-warning bg-opacity-10 text-warning text-dark border border-warning">
+                                            <i class="bi bi-clock-history me-1"></i>Awaiting Admin Review
+                                        </span>
+                                    {% elif prod.approval_status == 'rejected' %}
+                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">
+                                            <i class="bi bi-x-circle me-1"></i>Rejected by Admin
+                                        </span>
+                                    {% elif farmer.verification_status != 'verified' %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border">
+                                            <i class="bi bi-person-x me-1"></i>Farmer Unverified
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('farmer_edit_product', product_id=prod.product_id) }}" class="btn btn-outline-primary" title="Edit Crop & Photo">
+                                            <i class="bi bi-pencil-square me-1"></i>Edit
+                                        </a>
+                                        {% if prod.product_status == 'available' %}
+                                            <a href="{{ url_for('farmer_deactivate_product', product_id=prod.product_id) }}" class="btn btn-outline-danger" data-confirm="Deactivate this crop from the marketplace?" title="Deactivate">
+                                                <i class="bi bi-eye-slash"></i>
+                                            </a>
+                                        {% else %}
+                                            <a href="{{ url_for('farmer_activate_product', product_id=prod.product_id) }}" class="btn btn-outline-success" title="Activate">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-boxes display-4 text-muted mb-3"></i>
+                <h5 class="fw-bold">No Products Listed Yet</h5>
+                <p class="text-muted small">Start listing your agricultural crops with photos to sell directly to consumers.</p>
+                {% if farmer.verification_status == 'verified' %}
+                    <a href="{{ url_for('farmer_add_product') }}" class="btn btn-farm">Add First Product</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

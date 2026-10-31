@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FarmDirect – Farmer-to-Consumer Marketplace{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Custom Theme CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- Main Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-farm sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="bi bi-tree-fill text-success fs-3"></i>
+                <span>Farm<strong class="text-success">Direct</strong></span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">
+                            <i class="bi bi-house-door me-1"></i>Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'products' %}active{% endif %}" href="{{ url_for('products') }}">
+                            <i class="bi bi-shop me-1"></i>Products
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}" href="{{ url_for('about') }}">
+                            <i class="bi bi-info-circle me-1"></i>About
+                        </a>
+                    </li>
+                </ul>
+
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+                    <!-- Public / Guest Links -->
+                    {% if not session.get('user_id') %}
+                        <li class="nav-item me-2">
+                            <a class="btn btn-outline-success btn-sm px-3" href="{{ url_for('login') }}">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-farm btn-sm px-3" href="{{ url_for('register') }}">
+                                <i class="bi bi-person-plus me-1"></i>Register
+                            </a>
+                        </li>
+                    
+                    <!-- Farmer Authenticated Navigation -->
+                    {% elif session.get('role') == 'farmer' %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'farmer_dashboard' %}active{% endif %}" href="{{ url_for('farmer_dashboard') }}">
+                                <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'farmer_products' %}active{% endif %}" href="{{ url_for('farmer_products') }}">
+                                <i class="bi bi-box-seam me-1"></i>My Products
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'farmer_orders' %}active{% endif %}" href="{{ url_for('farmer_orders') }}">
+                                <i class="bi bi-receipt me-1"></i>Orders
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown ms-lg-2">
+                            <a class="nav-link dropdown-toggle text-success fw-bold d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
+                                <img src="{{ get_user_avatar_url(session.get('profile_image'), 'farmer') }}" alt="Profile" class="avatar-img avatar-nav">
+                                <span>{{ session.get('full_name') }}</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                <li><a class="dropdown-item" href="{{ url_for('farmer_dashboard') }}"><i class="bi bi-person me-2"></i>Farmer Dashboard</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profilePhotoModal"><i class="bi bi-camera me-2"></i>Change Profile Photo</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                            </ul>
+                        </li>
+
+                    <!-- Customer Authenticated Navigation -->
+                    {% elif session.get('role') == 'customer' %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'customer_dashboard' %}active{% endif %}" href="{{ url_for('customer_dashboard') }}">
+                                <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'customer_orders' %}active{% endif %}" href="{{ url_for('customer_orders') }}">
+                                <i class="bi bi-bag-check me-1"></i>My Orders
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link position-relative {% if request.endpoint == 'cart' %}active{% endif %}" href="{{ url_for('cart') }}">
+                                <i class="bi bi-cart3 fs-5"></i>
+                                <span class="badge bg-danger rounded-pill cart-badge" id="cartCountBadge">
+                                    {{ session.get('cart', {})|length }}
+                                </span>
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown ms-lg-2">
+                            <a class="nav-link dropdown-toggle text-success fw-bold d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
+                                <img src="{{ get_user_avatar_url(session.get('profile_image'), 'customer') }}" alt="Profile" class="avatar-img avatar-nav">
+                                <span>{{ session.get('full_name') }}</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                <li><a class="dropdown-item" href="{{ url_for('customer_dashboard') }}"><i class="bi bi-person me-2"></i>Customer Dashboard</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('customer_orders') }}"><i class="bi bi-bag me-2"></i>Order History</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('submit_complaint') }}"><i class="bi bi-exclamation-octagon me-2"></i>Raise Complaint</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profilePhotoModal"><i class="bi bi-camera me-2"></i>Change Profile Photo</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                            </ul>
+                        </li>
+
+                    <!-- Delivery Partner Navigation -->
+                    {% elif session.get('role') == 'delivery_partner' %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'delivery_dashboard' %}active{% endif %}" href="{{ url_for('delivery_dashboard') }}">
+                                <i class="bi bi-truck me-1"></i>Deliveries
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown ms-lg-2">
+                            <a class="nav-link dropdown-toggle text-warning fw-bold d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
+                                <img src="{{ get_user_avatar_url(session.get('profile_image'), 'delivery_partner') }}" alt="Profile" class="avatar-img avatar-nav">
+                                <span>{{ session.get('full_name') }}</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                <li><a class="dropdown-item" href="{{ url_for('delivery_dashboard') }}"><i class="bi bi-truck me-2"></i>Delivery Panel</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profilePhotoModal"><i class="bi bi-camera me-2"></i>Change Profile Photo</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                            </ul>
+                        </li>
+
+                    <!-- Admin Navigation -->
+                    {% elif session.get('role') == 'admin' %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">
+                                <i class="bi bi-speedometer2 me-1"></i>Admin Hub
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin_farmers' %}active{% endif %}" href="{{ url_for('admin_farmers') }}">
+                                <i class="bi bi-patch-check me-1"></i>Verify Farmers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin_products' %}active{% endif %}" href="{{ url_for('admin_products') }}">
+                                <i class="bi bi-boxes me-1"></i>Approve Products
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin_orders' %}active{% endif %}" href="{{ url_for('admin_orders') }}">
+                                <i class="bi bi-receipt me-1"></i>Orders
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin_complaints' %}active{% endif %}" href="{{ url_for('admin_complaints') }}">
+                                <i class="bi bi-chat-left-dots me-1"></i>Complaints
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown ms-lg-2">
+                            <a class="nav-link dropdown-toggle text-danger fw-bold d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
+                                <img src="{{ get_user_avatar_url(session.get('profile_image'), 'admin') }}" alt="Profile" class="avatar-img avatar-nav">
+                                <span>{{ session.get('full_name') }}</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                <li><a class="dropdown-item" href="{{ url_for('admin_users') }}"><i class="bi bi-people me-2"></i>Manage Users</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin_farmers') }}"><i class="bi bi-person-check me-2"></i>Farmer Verification</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin_products') }}"><i class="bi bi-box me-2"></i>Product Approvals</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profilePhotoModal"><i class="bi bi-camera me-2"></i>Change Profile Photo</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                            </ul>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages Container -->
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show shadow-sm" role="alert">
+                        {% if category == 'success' %}
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                        {% elif category == 'danger' or category == 'error' %}
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        {% elif category == 'warning' %}
+                            <i class="bi bi-exclamation-circle-fill me-2"></i>
+                        {% else %}
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                        {% endif %}
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Body Block -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Universal Laptop Webcam Modal (Available on any page/form) -->
+    <div class="modal fade" id="webcamModal" tabindex="-1" aria-labelledby="webcamModalLabel" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-dark" id="webcamModalLabel">
+                        <i class="bi bi-camera-video text-success me-2"></i>Laptop Webcam Photo Capture
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center p-4">
+                    <!-- Error / Warning Banner -->
+                    <div id="webcamAlert" class="alert alert-warning small text-start d-none mb-3"></div>
+
+                    <!-- Webcam Viewport -->
+                    <div class="webcam-viewport-wrapper mb-3">
+                        <div class="webcam-live-badge" id="webcamLiveBadge">
+                            <span class="live-pulse-dot"></span> LIVE CAMERA
+                        </div>
+                        <div class="webcam-viewfinder-overlay" id="webcamViewfinder"></div>
+                        <video id="webcamVideo" class="webcam-video-element" autoplay playsinline muted></video>
+                        <canvas id="webcamCanvas" style="display: none;"></canvas>
+                        <img id="webcamCapturedImage" class="webcam-captured-img d-none" alt="Captured Frame">
+                    </div>
+
+                    <p class="small text-muted mb-0">Align your subject in the frame and click <strong>Capture Photo</strong>.</p>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <!-- Live Controls -->
+                    <div id="webcamLiveControls" class="d-flex w-100 justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary" id="btnWebcamCancel" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-1"></i>Cancel
+                        </button>
+                        <button type="button" class="btn btn-farm px-4" id="btnWebcamCapture">
+                            <i class="bi bi-camera-fill me-1"></i>Capture Photo
+                        </button>
+                    </div>
+
+                    <!-- Captured Frame Controls -->
+                    <div id="webcamCapturedControls" class="d-flex w-100 justify-content-between d-none">
+                        <button type="button" class="btn btn-outline-warning" id="btnWebcamRetake">
+                            <i class="bi bi-arrow-repeat me-1"></i>Retake Photo
+                        </button>
+                        <button type="button" class="btn btn-farm px-4" id="btnWebcamSave">
+                            <i class="bi bi-check2-circle me-1"></i>Use Photo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Photo Upload Modal (Available to all logged-in users) -->
+    {% if session.get('user_id') %}
+    <div class="modal fade" id="profilePhotoModal" tabindex="-1" aria-labelledby="profilePhotoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="profilePhotoModalLabel">
+                        <i class="bi bi-camera text-success me-2"></i>Update Profile Photo
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3">
+                        <img id="navModalAvatarPreview" src="{{ get_user_avatar_url(session.get('profile_image'), session.get('role')) }}" alt="Current Photo" class="avatar-img avatar-xl mb-3">
+                        <p class="small text-muted mb-0">Take a photo using your laptop webcam or choose an existing photo from storage.</p>
+                        <p class="small text-muted">Allowed: JPG, PNG, WEBP (Max 5MB)</p>
+                    </div>
+
+                    <div id="modalPhotoWarning" class="alert alert-warning small d-none"></div>
+
+                    <!-- Dual Option Buttons -->
+                    <div class="d-flex justify-content-center gap-2 mb-3">
+                        <button type="button" class="btn btn-outline-success btn-sm btn-open-webcam" data-input-target="modalProfileInput" data-preview-target="navModalAvatarPreview" data-warning-target="modalPhotoWarning" data-bs-dismiss="modal">
+                            <i class="bi bi-camera-video-fill me-1"></i>Take Photo (Webcam)
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm btn-trigger-gallery" data-input-target="modalProfileInput">
+                            <i class="bi bi-image me-1"></i>Choose from Gallery
+                        </button>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('upload_profile_photo') }}" enctype="multipart/form-data" class="mb-3" id="profilePhotoForm">
+                        <input type="file" class="d-none image-preview-input" id="modalProfileInput" name="profile_image" accept="image/*" data-preview-target="navModalAvatarPreview" data-warning-target="modalPhotoWarning">
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-farm">
+                                <i class="bi bi-cloud-arrow-up me-1"></i>Upload & Save Photo
+                            </button>
+                        </div>
+                    </form>
+
+                    {% if session.get('profile_image') %}
+                    <form method="POST" action="{{ url_for('remove_profile_photo') }}">
+                        <button type="submit" class="btn btn-link text-danger btn-sm p-0" data-confirm="Are you sure you want to remove your profile photo and use the default avatar?">
+                            <i class="bi bi-trash3 me-1"></i>Remove Current Photo
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Modern Agriculture Footer -->
+    <footer class="footer-farm">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <h5 class="d-flex align-items-center gap-2">
+                        <i class="bi bi-tree-fill text-success"></i> FarmDirect
+                    </h5>
+                    <p class="small text-white-50">
+                        FarmDirect is an open, transparent marketplace connecting agricultural producers directly with local consumers and retailers to eliminate unnecessary middlemen, ensure fair farmer earnings, and provide fresh, affordable produce.
+                    </p>
+                    <div class="d-flex gap-3 fs-5 text-success">
+                        <i class="bi bi-shield-check" title="Fair Prices"></i>
+                        <i class="bi bi-truck" title="Reliable Delivery"></i>
+                        <i class="bi bi-flower1" title="100% Fresh Produce"></i>
+                    </div>
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><a href="{{ url_for('index') }}">Home</a></li>
+                        <li class="mb-2"><a href="{{ url_for('products') }}">All Products</a></li>
+                        <li class="mb-2"><a href="{{ url_for('about') }}">About FarmDirect</a></li>
+                        <li class="mb-2"><a href="{{ url_for('login') }}">Account Login</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <h5>Marketplace Roles</h5>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><a href="{{ url_for('register') }}">Farmer Registration</a></li>
+                        <li class="mb-2"><a href="{{ url_for('register') }}">Consumer Registration</a></li>
+                        <li class="mb-2"><a href="{{ url_for('login') }}">Delivery Partner Portal</a></li>
+                        <li class="mb-2"><a href="{{ url_for('login') }}">Admin Management</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <h5>College Mini-Project</h5>
+                    <p class="small text-white-50 mb-2">
+                        <strong>Project:</strong> FarmDirect Web Application<br>
+                        <strong>Tech:</strong> Python 3.13, Flask, MySQL 8.0, Bootstrap 5<br>
+                        <strong>Standard Delivery:</strong> Flat ₹30 per order
+                    </p>
+                    <span class="badge bg-success bg-opacity-25 text-success border border-success">Academic Demo Edition</span>
+                </div>
+            </div>
+
+            <div class="footer-bottom text-center text-white-50">
+                <p class="mb-0">&copy; 2026 FarmDirect – Agricultural Marketplace. Built for Academic Presentation & Viva Demonstration.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

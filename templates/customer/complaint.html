@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Complaints & Feedback – FarmDirect{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row g-4">
+        <!-- Left: Submit New Complaint Form -->
+        <div class="col-lg-5">
+            <div class="card card-custom p-4">
+                <h4 class="fw-bold text-dark mb-3">
+                    <i class="bi bi-exclamation-octagon text-danger me-2"></i>Raise a Complaint
+                </h4>
+                <p class="text-muted small">Our administrative team reviews all customer issues to ensure fair resolution.</p>
+
+                <form method="POST" action="{{ url_for('submit_complaint') }}">
+                    <div class="mb-3">
+                        <label for="order_id" class="form-label fw-semibold">Related Order (Optional)</label>
+                        <select class="form-select" id="order_id" name="order_id">
+                            <option value="">-- None / General Marketplace Query --</option>
+                            {% for ord in user_orders %}
+                                <option value="{{ ord.order_id }}" {% if selected_order_id == ord.order_id|string %}selected{% endif %}>
+                                    Order #{{ ord.order_id }} (₹{{ "%.2f"|format(ord.total_amount) }} - {{ ord.order_status }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="complaint_type" class="form-label fw-semibold">Issue Category <span class="text-danger">*</span></label>
+                        <select class="form-select" id="complaint_type" name="complaint_type" required>
+                            <option value="delivery">Delivery Delay / Partner Behavior</option>
+                            <option value="product_quality">Product Quality / Damage</option>
+                            <option value="payment">Payment / Billing Issue</option>
+                            <option value="other">Other Inquiry / Feedback</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="description" class="form-label fw-semibold">Description of Problem <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="description" name="description" rows="4" maxlength="500" placeholder="Please provide specific details regarding the issue (max 500 characters)..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger w-100 py-2 fw-semibold">
+                        <i class="bi bi-send me-2"></i>Submit Complaint
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right: Complaint History -->
+        <div class="col-lg-7">
+            <div class="card card-custom p-4">
+                <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">
+                    <i class="bi bi-clock-history text-secondary me-2"></i>Your Submitted Complaints
+                </h5>
+
+                {% if complaints %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for comp in complaints %}
+                            <div class="p-3 border rounded-3 bg-light">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div>
+                                        <span class="badge bg-secondary text-uppercase me-1">{{ comp.complaint_type|replace('_', ' ') }}</span>
+                                        {% if comp.order_id %}
+                                            <span class="badge bg-light text-dark border">Order #{{ comp.order_id }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <span class="badge {% if comp.complaint_status == 'resolved' %}bg-success{% elif comp.complaint_status == 'in_progress' %}bg-primary{% elif comp.complaint_status == 'closed' %}bg-dark{% else %}bg-warning text-dark{% endif %} text-capitalize">
+                                        {{ comp.complaint_status|replace('_', ' ') }}
+                                    </span>
+                                </div>
+                                <p class="text-dark small mb-2 mt-2">{{ comp.description }}</p>
+                                <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
+                                    <span>Created: {{ comp.created_at }}</span>
+                                    {% if comp.resolved_at %}
+                                        <span class="text-success">Resolved: {{ comp.resolved_at }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted small">
+                        <i class="bi bi-emoji-smile fs-2 d-block mb-2 text-success"></i>
+                        No complaints submitted. Everything is running smoothly!
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

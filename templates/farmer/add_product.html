@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Crop – FarmDirect{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="d-flex align-items-center mb-3">
+                <a href="{{ url_for('farmer_products') }}" class="btn btn-outline-secondary btn-sm me-2">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <h3 class="fw-bold text-dark mb-0">Add New Agricultural Produce</h3>
+            </div>
+
+            <div class="alert alert-info py-2 mb-3 small">
+                <i class="bi bi-info-circle-fill me-1"></i>
+                <strong>Notice:</strong> As a verified farmer, your newly added crops will be submitted for <strong>Admin Approval</strong> before appearing on the public customer marketplace.
+            </div>
+
+            <div class="card card-custom p-4">
+                <form method="POST" action="{{ url_for('farmer_add_product') }}" enctype="multipart/form-data">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label for="product_name" class="form-label fw-semibold">Product / Crop Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="product_name" name="product_name" placeholder="e.g. Fresh Red Onions, Organic Ponni Rice" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="category_id" class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+                            <select class="form-select" id="category_id" name="category_id" required>
+                                <option value="" disabled selected>Select Category</option>
+                                {% for cat in categories %}
+                                    <option value="{{ cat.category_id }}">{{ cat.category_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Product Image Upload Section -->
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-camera text-success me-1"></i>Product Image (Optional but Recommended)
+                            </label>
+                            
+                            <div class="row g-3 align-items-center">
+                                <div class="col-md-7">
+                                    <div class="photo-source-group">
+                                        <div class="d-flex flex-wrap gap-2 mb-2">
+                                            <button type="button" class="btn btn-outline-success btn-sm btn-open-webcam" data-input-target="product_image" data-preview-target="cropImagePreview" data-container-target="cropPreviewContainer" data-warning-target="cropImageWarning">
+                                                <i class="bi bi-camera-video-fill me-1"></i>Take Photo (Webcam)
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm btn-trigger-gallery" data-input-target="product_image">
+                                                <i class="bi bi-image me-1"></i>Choose from Gallery
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Hidden/styled standard file picker for gallery selection -->
+                                        <input type="file" class="form-control form-control-sm image-preview-input mt-2" id="product_image" name="product_image" accept="image/*" data-preview-target="cropImagePreview" data-preview-container="cropPreviewContainer" data-warning-target="cropImageWarning">
+                                        
+                                        <small class="text-muted d-block mt-2">
+                                            <i class="bi bi-info-circle me-1"></i>Capture live with laptop webcam or pick a JPG, PNG, WEBP file (Max 5MB).
+                                        </small>
+                                    </div>
+                                    <div id="cropImageWarning" class="alert alert-warning small mt-2 d-none"></div>
+                                </div>
+                                <div class="col-md-5">
+                                    <div id="cropPreviewContainer" class="image-preview-box d-none p-2 text-center">
+                                        <p class="small fw-semibold text-muted mb-1">Live Image Preview:</p>
+                                        <img id="cropImagePreview" src="" alt="Selected Produce" class="rounded shadow-sm">
+                                        <button type="button" class="btn btn-outline-danger btn-sm mt-2 btn-clear-preview" data-input-target="product_image" data-container-target="cropPreviewContainer">
+                                            <i class="bi bi-x-circle me-1"></i>Clear Selection
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="description" class="form-label fw-semibold">Description / Quality Notes</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" placeholder="Describe freshness, farming method, taste, size or packaging details (max 500 chars)"></textarea>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="unit" class="form-label fw-semibold">Measurement Unit <span class="text-danger">*</span></label>
+                            <select class="form-select" id="unit" name="unit" required>
+                                <option value="kg" selected>kg (Kilogram)</option>
+                                <option value="litre">litre (Litre)</option>
+                                <option value="dozen">dozen (Dozen)</option>
+                                <option value="piece">piece (Piece)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="price" class="form-label fw-semibold">Price per Unit (₹) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" step="0.01" min="1" class="form-control" id="price" name="price" placeholder="e.g. 45.00" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="available_quantity" class="form-label fw-semibold">Available Stock Quantity <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" min="1" class="form-control" id="available_quantity" name="available_quantity" placeholder="e.g. 100" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="harvest_date" class="form-label fw-semibold">Harvest Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="harvest_date" name="harvest_date" value="{{ today }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="product_status" class="form-label fw-semibold">Marketplace Availability</label>
+                            <select class="form-select" id="product_status" name="product_status">
+                                <option value="available" selected>Available (Ready for Sale upon Approval)</option>
+                                <option value="inactive">Draft / Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a href="{{ url_for('farmer_products') }}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-farm px-4">
+                            <i class="bi bi-check2-circle me-1"></i>Submit for Approval
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

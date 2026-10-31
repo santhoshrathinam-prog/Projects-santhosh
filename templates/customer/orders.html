@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}My Order History – FarmDirect{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold text-dark mb-0">
+                <i class="bi bi-bag-check text-success me-2"></i>My Orders
+            </h3>
+            <p class="text-muted small mb-0">Track live order statuses and review delivered produce</p>
+        </div>
+        <a href="{{ url_for('products') }}" class="btn btn-farm btn-sm">
+            <i class="bi bi-basket me-1"></i>Order More Produce
+        </a>
+    </div>
+
+    <div class="card card-custom p-4">
+        {% if orders %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Order #</th>
+                            <th>Date & Time</th>
+                            <th>Items Summary</th>
+                            <th>Total Amount</th>
+                            <th>Payment</th>
+                            <th>Order Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ord in orders %}
+                            <tr>
+                                <td><span class="badge bg-secondary fs-6">#{{ ord.order_id }}</span></td>
+                                <td><small class="text-muted">{{ ord.order_date }}</small></td>
+                                <td>
+                                    <span class="text-dark fw-semibold">{{ ord.item_count }} item(s)</span><br>
+                                    <small class="text-muted">{{ ord.delivery_address }}</small>
+                                </td>
+                                <td><strong class="text-success fs-6">₹{{ "%.2f"|format(ord.total_amount) }}</strong></td>
+                                <td>
+                                    {% if ord.payment_method == 'upi' %}
+                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary"><i class="bi bi-qr-code me-1"></i>UPI Demo</span>
+                                    {% elif ord.payment_method == 'card' %}
+                                        <span class="badge bg-warning bg-opacity-10 text-dark border border-warning"><i class="bi bi-credit-card me-1"></i>Card Demo</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border">COD</span>
+                                    {% endif %}
+                                    <br>
+                                    <small class="{% if ord.payment_status == 'paid' %}text-success fw-bold{% else %}text-warning fw-bold{% endif %}">
+                                        {{ ord.payment_status|capitalize }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="badge badge-status-{{ ord.order_status }} text-capitalize py-2 px-3">
+                                        {{ ord.order_status|replace('_', ' ') }}
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end gap-1">
+                                        <a href="{{ url_for('customer_order_details', order_id=ord.order_id) }}" class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-eye me-1"></i>Details
+                                        </a>
+                                        {% if ord.order_status == 'delivered' %}
+                                            <a href="{{ url_for('customer_order_details', order_id=ord.order_id) }}#reviewSection" class="btn btn-outline-warning btn-sm" title="Rate / Review">
+                                                <i class="bi bi-star"></i>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-bag-x display-4 mb-3 d-block"></i>
+                <h5 class="fw-bold">No Orders Found</h5>
+                <p class="small">You have not placed any orders yet.</p>
+                <a href="{{ url_for('products') }}" class="btn btn-farm">Browse Agricultural Catalog</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

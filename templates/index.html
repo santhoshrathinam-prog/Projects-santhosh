@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}FarmDirect – Fresh From Farmers, Directly To You{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-7 text-center text-lg-start">
+                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold mb-3">
+                    <i class="bi bi-patch-check-fill me-1"></i> Direct Farmer-to-Consumer Marketplace
+                </span>
+                <h1 class="hero-title mb-3">
+                    Fresh From Farmers,<br>
+                    <span class="text-warning">Directly To You.</span>
+                </h1>
+                <p class="hero-subtitle mb-4">
+                    Cut out the middlemen and commission agents. Support local farmers with fair pricing while enjoying farm-fresh vegetables, fruits, grains, and spices delivered to your doorstep.
+                </p>
+                <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+                    <a href="{{ url_for('products') }}" class="btn btn-warning btn-lg px-4 fw-bold shadow-sm">
+                        <i class="bi bi-basket3 me-2"></i>Browse Products
+                    </a>
+                    {% if not session.get('user_id') %}
+                        <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-lg px-4 fw-bold">
+                            <i class="bi bi-person-plus me-2"></i>Become a Farmer
+                        </a>
+                    {% elif session.get('role') == 'farmer' %}
+                        <a href="{{ url_for('farmer_add_product') }}" class="btn btn-outline-light btn-lg px-4 fw-bold">
+                            <i class="bi bi-plus-circle me-2"></i>Add New Product
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-5 text-center mt-5 mt-lg-0">
+                <div class="p-4 bg-white bg-opacity-10 rounded-4 border border-white border-opacity-25 shadow-lg backdrop-blur">
+                    <i class="bi bi-flower1 display-1 text-warning mb-3"></i>
+                    <h3 class="fw-bold text-white">100% Farm Fresh</h3>
+                    <p class="text-white-50 mb-0">Harvested directly from verified local farms across Tamil Nadu & neighboring regions.</p>
+                    <div class="row text-center mt-4 pt-3 border-top border-white border-opacity-25">
+                        <div class="col-4">
+                            <h4 class="fw-bold text-warning mb-0">0%</h4>
+                            <small class="text-white-50">Middlemen</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="fw-bold text-warning mb-0">100%</h4>
+                            <small class="text-white-50">Direct Pay</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="fw-bold text-warning mb-0">₹30</h4>
+                            <small class="text-white-50">Flat Delivery</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="container my-5 py-4">
+    <div class="text-center mb-5">
+        <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-bold mb-2">Simple 3-Step Process</span>
+        <h2 class="fw-bold">How FarmDirect Works</h2>
+        <p class="text-muted">A transparent bridge connecting agricultural producers with conscious consumers.</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="feature-box">
+                <div class="feature-icon-wrapper">
+                    <i class="bi bi-person-workspace"></i>
+                </div>
+                <h4 class="fw-bold mb-3">1. Farmers Harvest & List</h4>
+                <p class="text-muted mb-0">
+                    Verified farmers list their fresh produce with transparent pricing, unit quantities, harvest dates, and farming types (organic/conventional).
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="feature-box">
+                <div class="feature-icon-wrapper">
+                    <i class="bi bi-cart-check"></i>
+                </div>
+                <h4 class="fw-bold mb-3">2. Consumers Order Directly</h4>
+                <p class="text-muted mb-0">
+                    Customers browse local farm products, compare prices, add to cart, and choose flexible payment modes (COD / UPI / Card Demo).
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="feature-box">
+                <div class="feature-icon-wrapper">
+                    <i class="bi bi-truck"></i>
+                </div>
+                <h4 class="fw-bold mb-3">3. Fast Doorstep Delivery</h4>
+                <p class="text-muted mb-0">
+                    Dedicated delivery partners pick up freshly packed items directly from farm points and deliver promptly to your doorstep.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Products Section -->
+<section class="container my-5 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-bold mb-2">Fresh Harvest</span>
+            <h2 class="fw-bold mb-0">Featured Agricultural Products</h2>
+        </div>
+        <a href="{{ url_for('products') }}" class="btn btn-farm-outline">
+            View All Products <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+
+    <div class="row g-4">
+        {% if featured_products %}
+            {% for prod in featured_products %}
+                <div class="col-lg-3 col-md-6">
+                    <div class="card card-custom h-100">
+                        <div class="product-card-img-wrapper">
+                            <img src="{{ get_product_image_url(prod.image_filename) }}" class="product-card-img" alt="{{ prod.product_name }}" loading="lazy">
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-light text-dark border">{{ prod.category_name }}</span>
+                                <span class="badge badge-status-available">Available</span>
+                            </div>
+                            <h5 class="card-title fw-bold mb-1">{{ prod.product_name }}</h5>
+                            
+                            <!-- Farmer Provenance Mini Badge -->
+                            <div class="farmer-badge-mini mb-2">
+                                <img src="{{ get_user_avatar_url(prod.profile_image, 'farmer') }}" alt="{{ prod.farm_name }}" class="avatar-img avatar-sm" style="width: 24px; height: 24px;">
+                                <span class="text-truncate" style="max-width: 170px;">{{ prod.farm_name }} ({{ prod.city }})</span>
+                            </div>
+
+                            <p class="small text-muted flex-grow-1">
+                                {{ (prod.description or '')[:75] }}{% if prod.description and prod.description|length > 75 %}...{% endif %}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                                <div>
+                                    <span class="fs-5 fw-bold text-success">₹{{ "%.2f"|format(prod.price) }}</span>
+                                    <span class="text-muted small">/ {{ prod.unit }}</span>
+                                </div>
+                                <a href="{{ url_for('product_details', product_id=prod.product_id) }}" class="btn btn-sm btn-outline-success">
+                                    Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center py-5">
+                <p class="text-muted">No featured products currently available.</p>
+                <a href="{{ url_for('products') }}" class="btn btn-farm">Browse All Products</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Benefits Section -->
+<section class="bg-light py-5 border-top border-bottom">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-bold mb-2">Why FarmDirect</span>
+                <h2 class="fw-bold mb-4">Empowering Farmers, Delighting Consumers</h2>
+                <div class="d-flex gap-3 mb-4">
+                    <div class="fs-2 text-success"><i class="bi bi-currency-rupee"></i></div>
+                    <div>
+                        <h5 class="fw-bold mb-1">Fair & Direct Compensation</h5>
+                        <p class="text-muted mb-0">Farmers receive the full selling price for their harvest without heavy commissions deducted by brokers or wholesale cartels.</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-3 mb-4">
+                    <div class="fs-2 text-success"><i class="bi bi-shield-check"></i></div>
+                    <div>
+                        <h5 class="fw-bold mb-1">Admin Verified Farmers</h5>
+                        <p class="text-muted mb-0">Every farmer is vetted and verified by administrators before listing produce to ensure quality and authentic agricultural origin.</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-3">
+                    <div class="fs-2 text-success"><i class="bi bi-heart-pulse"></i></div>
+                    <div>
+                        <h5 class="fw-bold mb-1">Guaranteed Freshness</h5>
+                        <p class="text-muted mb-0">Harvest dates are clearly listed for every product, ensuring produce does not sit for weeks in cold storages.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="p-4 bg-white rounded-4 shadow-sm border">
+                    <h4 class="fw-bold text-success mb-3"><i class="bi bi-award me-2"></i>College Mini-Project Features</h4>
+                    <ul class="list-unstyled mb-0">
+                        <li class="d-flex align-items-center mb-3">
+                            <i class="bi bi-check-circle-fill text-success fs-5 me-3"></i>
+                            <span><strong>Dual-Tier Quality Governance:</strong> Admin Farmer Verification & Product Approval</span>
+                        </li>
+                        <li class="d-flex align-items-center mb-3">
+                            <i class="bi bi-check-circle-fill text-success fs-5 me-3"></i>
+                            <span><strong>Image Upload with Previews:</strong> Camera & gallery uploads for crops and user profiles</span>
+                        </li>
+                        <li class="d-flex align-items-center mb-3">
+                            <i class="bi bi-check-circle-fill text-success fs-5 me-3"></i>
+                            <span><strong>4 Dedicated Roles:</strong> Farmer, Customer, Delivery Partner, and System Administrator</span>
+                        </li>
+                        <li class="d-flex align-items-center">
+                            <i class="bi bi-check-circle-fill text-success fs-5 me-3"></i>
+                            <span><strong>End-to-End Direct Ordering:</strong> Real-time cart, checkout, delivery status & customer feedback</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

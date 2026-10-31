@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# Environment variables
+.env
+
+# Temporary & Scratch
+scratch/
+.system_generated/
+~$*
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace

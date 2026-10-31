@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <defs>
+    <linearGradient id="farmerBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e8f5e9" />
+      <stop offset="100%" stop-color="#c8e6c9" />
+    </linearGradient>
+  </defs>
+  <!-- Circle Background -->
+  <circle cx="100" cy="100" r="100" fill="url(#farmerBgGrad)"/>
+  
+  <!-- Farmer Silhouette with Hat -->
+  <g fill="#2e7d32">
+    <!-- Farmer Hat -->
+    <path d="M 50 65 Q 100 45 150 65 Q 125 40 100 40 Q 75 40 50 65 Z"/>
+    <ellipse cx="100" cy="65" rx="55" ry="8"/>
+    <!-- Head -->
+    <circle cx="100" cy="85" r="28"/>
+    <!-- Shoulders -->
+    <path d="M 45 170 C 45 130 70 125 100 125 C 130 125 155 130 155 170 C 155 185 140 195 100 195 C 60 195 45 185 45 170 Z"/>
+  </g>
+</svg>

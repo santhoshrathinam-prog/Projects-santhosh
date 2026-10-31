@@ -1,0 +1,502 @@
+/* ==========================================================================
+   FarmDirect – Modern Agricultural Marketplace Stylesheet
+   Theme: Nature Green, Earth Tones & Clean Modern Bootstrap 5 enhancements
+   ========================================================================== */
+
+:root {
+    --primary-green: #2e7d32;
+    --primary-dark: #1b5e20;
+    --primary-light: #e8f5e9;
+    --accent-amber: #f57f17;
+    --accent-gold: #ffb300;
+    --bg-light: #f8faf9;
+    --text-dark: #2c3e50;
+    --text-muted: #6c757d;
+    --border-color: #e2e8f0;
+    --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    --hover-shadow: 0 8px 25px rgba(46, 125, 50, 0.15);
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+/* --------------------------------------------------
+   Navbar Styling
+   -------------------------------------------------- */
+.navbar-farm {
+    background-color: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    border-bottom: 3px solid var(--primary-green);
+    padding: 0.75rem 1rem;
+}
+
+.navbar-farm .navbar-brand {
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: var(--primary-green);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.navbar-farm .nav-link {
+    font-weight: 500;
+    color: #495057;
+    padding: 0.5rem 0.9rem;
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
+}
+
+.navbar-farm .nav-link:hover,
+.navbar-farm .nav-link.active {
+    color: var(--primary-green);
+    background-color: var(--primary-light);
+}
+
+.cart-badge {
+    position: relative;
+    top: -2px;
+}
+
+/* --------------------------------------------------
+   Hero Section
+   -------------------------------------------------- */
+.hero-section {
+    background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 60%, #388e3c 100%);
+    color: #ffffff;
+    padding: 4.5rem 1rem;
+    border-radius: 0 0 2rem 2rem;
+    margin-bottom: 2.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: "";
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+}
+
+.hero-title {
+    font-size: 2.75rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: #e8f5e9;
+    font-weight: 400;
+}
+
+/* --------------------------------------------------
+   Cards & UI Components
+   -------------------------------------------------- */
+.card-custom {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+}
+
+.card-custom:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--hover-shadow);
+}
+
+.card-header-farm {
+    background-color: #ffffff;
+    border-bottom: 2px solid var(--primary-light);
+    font-weight: 600;
+    color: var(--primary-green);
+    padding: 1rem 1.25rem;
+}
+
+/* --------------------------------------------------
+   Product Image Containers & Consistency
+   -------------------------------------------------- */
+.product-card-img-wrapper {
+    height: 190px;
+    width: 100%;
+    background-color: #f1f8e9;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.product-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.3s ease;
+}
+
+.card-custom:hover .product-card-img {
+    transform: scale(1.05);
+}
+
+.product-detail-img-wrapper {
+    height: 380px;
+    width: 100%;
+    background-color: #f1f8e9;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+}
+
+.product-detail-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.product-thumb-sm {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.product-thumb-md {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+/* --------------------------------------------------
+   User Profile Avatars
+   -------------------------------------------------- */
+.avatar-img {
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    background-color: #f5f5f5;
+}
+
+.avatar-nav {
+    width: 32px;
+    height: 32px;
+}
+
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+}
+
+.avatar-md {
+    width: 60px;
+    height: 60px;
+}
+
+.avatar-lg {
+    width: 90px;
+    height: 90px;
+}
+
+.avatar-xl {
+    width: 120px;
+    height: 120px;
+}
+
+.farmer-badge-mini {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.6rem;
+    background-color: #f1f8e9;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: var(--primary-dark);
+}
+
+/* --------------------------------------------------
+   Image Upload & Live Preview UI
+   -------------------------------------------------- */
+.image-upload-dropzone {
+    border: 2px dashed #a5d6a7;
+    background-color: #fbfdfb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.image-upload-dropzone:hover {
+    border-color: var(--primary-green);
+    background-color: #f1f8e9;
+}
+
+.image-preview-box {
+    max-height: 220px;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+    border: 1px solid var(--border-color);
+}
+
+.image-preview-box img {
+    max-height: 200px;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+/* --------------------------------------------------
+   Webcam Live Camera Viewfinder & Styling
+   -------------------------------------------------- */
+.webcam-viewport-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto;
+    background-color: #0d1117;
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.webcam-video-element {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1); /* Mirror effect for natural webcam feedback */
+}
+
+.webcam-captured-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background-color: #000;
+}
+
+.webcam-live-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background-color: rgba(220, 53, 69, 0.9);
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    letter-spacing: 0.5px;
+    z-index: 10;
+}
+
+.live-pulse-dot {
+    width: 7px;
+    height: 7px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    animation: livePulse 1.2s infinite ease-in-out;
+}
+
+@keyframes livePulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(0.7); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.webcam-viewfinder-overlay {
+    position: absolute;
+    inset: 15px;
+    border: 2px dashed rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.photo-source-group {
+    background-color: #f8faf8;
+    border: 1px solid #e0e6e0;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+
+/* --------------------------------------------------
+   Dashboard Metric Cards
+   -------------------------------------------------- */
+.stat-card {
+    border-radius: 12px;
+    padding: 1.25rem;
+    color: #ffffff;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+}
+
+.stat-card-green { background: linear-gradient(135deg, #2e7d32, #43a047); }
+.stat-card-blue  { background: linear-gradient(135deg, #1565c0, #1e88e5); }
+.stat-card-amber { background: linear-gradient(135deg, #e65100, #fb8c00); }
+.stat-card-purple{ background: linear-gradient(135deg, #6a1b9a, #8e24aa); }
+.stat-card-teal  { background: linear-gradient(135deg, #00695c, #00897b); }
+
+.stat-icon {
+    font-size: 2.2rem;
+    opacity: 0.85;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* --------------------------------------------------
+   Buttons & Badges
+   -------------------------------------------------- */
+.btn-farm {
+    background-color: var(--primary-green);
+    color: #ffffff;
+    border: none;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 0.5rem 1.25rem;
+    transition: all 0.2s;
+}
+
+.btn-farm:hover {
+    background-color: var(--primary-dark);
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);
+}
+
+.btn-farm-outline {
+    background-color: transparent;
+    color: var(--primary-green);
+    border: 2px solid var(--primary-green);
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 0.45rem 1.2rem;
+    transition: all 0.2s;
+}
+
+.btn-farm-outline:hover {
+    background-color: var(--primary-green);
+    color: #ffffff;
+}
+
+.badge-status-available { background-color: #2e7d32; color: #fff; }
+.badge-status-out_of_stock { background-color: #d32f2f; color: #fff; }
+.badge-status-inactive { background-color: #757575; color: #fff; }
+
+.badge-status-placed { background-color: #0288d1; color: #fff; }
+.badge-status-confirmed { background-color: #5c6bc0; color: #fff; }
+.badge-status-packed { background-color: #f57c00; color: #fff; }
+.badge-status-out_for_delivery { background-color: #7b1fa2; color: #fff; }
+.badge-status-delivered { background-color: #2e7d32; color: #fff; }
+.badge-status-cancelled { background-color: #c62828; color: #fff; }
+
+.badge-status-verified { background-color: #2e7d32; color: #fff; }
+.badge-status-pending { background-color: #f57f17; color: #fff; }
+.badge-status-rejected { background-color: #c62828; color: #fff; }
+
+/* --------------------------------------------------
+   Feature & How it Works Section
+   -------------------------------------------------- */
+.feature-box {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.feature-box:hover {
+    border-color: var(--primary-green);
+    transform: translateY(-4px);
+    box-shadow: var(--hover-shadow);
+}
+
+.feature-icon-wrapper {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    background-color: var(--primary-light);
+    color: var(--primary-green);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin-bottom: 1.25rem;
+}
+
+/* --------------------------------------------------
+   Footer
+   -------------------------------------------------- */
+.footer-farm {
+    background-color: #1b2e1e;
+    color: #e8f5e9;
+    padding: 3.5rem 0 1.5rem 0;
+    margin-top: 4rem;
+}
+
+.footer-farm h5 {
+    color: #ffffff;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+}
+
+.footer-farm a {
+    color: #a5d6a7;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.footer-farm a:hover {
+    color: #ffffff;
+    text-decoration: underline;
+}
+
+.footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    font-size: 0.85rem;
+}

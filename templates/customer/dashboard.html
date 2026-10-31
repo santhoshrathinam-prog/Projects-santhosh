@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Dashboard – FarmDirect{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Welcome Header -->
+    <div class="card card-custom p-4 mb-4 border-start border-primary border-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="position-relative">
+                    <img src="{{ get_user_avatar_url(customer.profile_image, 'customer') }}" alt="{{ session.get('full_name') }}" class="avatar-img avatar-lg">
+                    <button type="button" class="btn btn-sm btn-light border rounded-circle position-absolute bottom-0 end-0 p-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#profilePhotoModal" title="Change Photo">
+                        <i class="bi bi-camera text-primary"></i>
+                    </button>
+                </div>
+                <div>
+                    <h3 class="fw-bold text-dark mb-1">Welcome, {{ session.get('full_name') }}!</h3>
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-geo-alt me-1 text-primary"></i>Delivery Address: {{ customer.delivery_address }}, {{ customer.pincode }} | 
+                        <i class="bi bi-telephone me-1"></i>{{ customer.phone or session.get('phone', '') }}
+                    </p>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('products') }}" class="btn btn-farm">
+                    <i class="bi bi-shop me-1"></i>Browse Market
+                </a>
+                <a href="{{ url_for('cart') }}" class="btn btn-outline-success position-relative">
+                    <i class="bi bi-cart3 me-1"></i>My Cart
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metric Stat Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card stat-card-blue">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number">{{ stats.total_orders }}</div>
+                        <div class="small text-white-50">Total Orders Placed</div>
+                    </div>
+                    <div class="stat-icon"><i class="bi bi-bag-check"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card stat-card-amber">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number">{{ stats.active_orders }}</div>
+                        <div class="small text-white-50">In Progress / Transit</div>
+                    </div>
+                    <div class="stat-icon"><i class="bi bi-truck"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card stat-card-green">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number">{{ stats.completed_orders }}</div>
+                        <div class="small text-white-50">Delivered Orders</div>
+                    </div>
+                    <div class="stat-icon"><i class="bi bi-patch-check"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card stat-card-purple">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number">₹{{ "%.0f"|format(stats.total_spent|default(0)) }}</div>
+                        <div class="small text-white-50">Total Purchases</div>
+                    </div>
+                    <div class="stat-icon"><i class="bi bi-wallet2"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Navigation & Recent Orders -->
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card card-custom p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-clock-history text-primary me-2"></i>Recent Orders
+                    </h5>
+                    <a href="{{ url_for('customer_orders') }}" class="btn btn-sm btn-outline-secondary">View All Orders</a>
+                </div>
+
+                {% if recent_orders %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Date</th>
+                                    <th>Total Amount</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ord in recent_orders %}
+                                    <tr>
+                                        <td><strong>#{{ ord.order_id }}</strong></td>
+                                        <td><small class="text-muted">{{ ord.order_date }}</small></td>
+                                        <td><strong class="text-success">₹{{ "%.2f"|format(ord.total_amount) }}</strong></td>
+                                        <td>
+                                            <span class="badge badge-status-{{ ord.order_status }} text-capitalize">
+                                                {{ ord.order_status|replace('_', ' ') }}
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{{ url_for('customer_order_details', order_id=ord.order_id) }}" class="btn btn-outline-primary btn-sm">
+                                                Track & Invoice
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-bag-x display-4 mb-2 d-block"></i>
+                        <p>You haven't placed any orders yet.</p>
+                        <a href="{{ url_for('products') }}" class="btn btn-farm">Start Shopping Fresh Produce</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card card-custom p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-gear text-secondary me-2"></i>Quick Services</h5>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('customer_orders') }}" class="btn btn-outline-secondary text-start">
+                        <i class="bi bi-receipt me-2"></i>My Order History
+                    </a>
+                    <a href="{{ url_for('submit_complaint') }}" class="btn btn-outline-secondary text-start">
+                        <i class="bi bi-exclamation-octagon me-2"></i>Raise Complaint / Support
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary text-start" data-bs-toggle="modal" data-bs-target="#profilePhotoModal">
+                        <i class="bi bi-camera me-2"></i>Change Profile Photo
+                    </button>
+                    <a href="{{ url_for('products') }}" class="btn btn-farm text-start">
+                        <i class="bi bi-basket3 me-2"></i>Browse Farm Marketplace
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

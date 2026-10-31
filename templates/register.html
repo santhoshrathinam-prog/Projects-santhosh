@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Register – FarmDirect{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card card-custom p-4 shadow">
+                <div class="text-center mb-4">
+                    <div class="d-inline-flex p-3 rounded-circle bg-success bg-opacity-10 text-success mb-3">
+                        <i class="bi bi-person-plus fs-2"></i>
+                    </div>
+                    <h3 class="fw-bold">Create an Account</h3>
+                    <p class="text-muted small">Join FarmDirect as a Customer or Verified Farmer</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('register') }}" id="registerForm" enctype="multipart/form-data">
+                    <!-- Step 1: Role Selection -->
+                    <div class="mb-4 p-3 bg-light rounded-3 border">
+                        <label for="roleSelect" class="form-label fw-bold text-success">
+                            <i class="bi bi-person-badge me-1"></i>I want to register as: <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select form-select-lg" id="roleSelect" name="role" required>
+                            <option value="customer" {% if request.form.get('role') == 'customer' or not request.form.get('role') %}selected{% endif %}>
+                                🛒 Consumer / Customer (Buy fresh produce)
+                            </option>
+                            <option value="farmer" {% if request.form.get('role') == 'farmer' %}selected{% endif %}>
+                                👨‍🌾 Farmer / Producer (Sell agricultural harvest)
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Step 2: Personal Information -->
+                    <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">Basic Details</h5>
+                    
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="full_name" class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="full_name" name="full_name" placeholder="e.g. Ramesh Kumar" value="{{ request.form.get('full_name', '') }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label fw-semibold">Email Address <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" value="{{ request.form.get('email', '') }}" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label for="phone" class="form-label fw-semibold">Phone Number <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="phone" name="phone" placeholder="10-digit mobile" pattern="[0-9]{10}" maxlength="15" value="{{ request.form.get('phone', '') }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="city" class="form-label fw-semibold">City / District <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="city" name="city" placeholder="e.g. Coimbatore" value="{{ request.form.get('city', '') }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="state" class="form-label fw-semibold">State <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="state" name="state" placeholder="e.g. Tamil Nadu" value="{{ request.form.get('state', 'Tamil Nadu') }}" required>
+                        </div>
+                    </div>
+
+                    <!-- Optional Profile Photo Selection -->
+                    <div class="mb-3 p-3 bg-light rounded-3 border">
+                        <label class="form-label fw-semibold mb-2">
+                            <i class="bi bi-camera text-success me-1"></i>Profile Photo (Optional)
+                        </label>
+                        <div class="row g-2 align-items-center">
+                            <div class="col-sm-8">
+                                <div class="d-flex flex-wrap gap-2 mb-2">
+                                    <button type="button" class="btn btn-outline-success btn-sm btn-open-webcam" data-input-target="reg_profile_image" data-preview-target="regAvatarPreview" data-container-target="regAvatarContainer" data-warning-target="regPhotoWarning">
+                                        <i class="bi bi-camera-video-fill me-1"></i>Take Photo (Webcam)
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm btn-trigger-gallery" data-input-target="reg_profile_image">
+                                        <i class="bi bi-image me-1"></i>Choose from Gallery
+                                    </button>
+                                </div>
+                                <input type="file" class="form-control form-control-sm image-preview-input" id="reg_profile_image" name="profile_image" accept="image/*" data-preview-target="regAvatarPreview" data-preview-container="regAvatarContainer" data-warning-target="regPhotoWarning">
+                                <small class="text-muted d-block mt-1">Allowed: JPG, PNG, WEBP (Max 5MB)</small>
+                                <div id="regPhotoWarning" class="alert alert-warning small py-1 mt-1 d-none"></div>
+                            </div>
+                            <div class="col-sm-4 text-center">
+                                <div id="regAvatarContainer" class="d-none">
+                                    <img id="regAvatarPreview" src="" alt="Avatar Preview" class="avatar-img avatar-md shadow-sm">
+                                    <button type="button" class="btn btn-outline-danger btn-sm p-0 px-2 mt-1 btn-clear-preview d-block mx-auto" style="font-size: 0.75rem;" data-input-target="reg_profile_image" data-container-target="regAvatarContainer">
+                                        Remove Photo
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Conditional Customer Address Fields -->
+                    <div id="customerFields" class="mb-3">
+                        <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">Customer Delivery Address</h5>
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label for="delivery_address" class="form-label fw-semibold">Street / Door Address <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="delivery_address" name="delivery_address" placeholder="e.g. 14 Gandhi Street, RS Puram" value="{{ request.form.get('delivery_address', '') }}" data-mandatory="true">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="pincode" class="form-label fw-semibold">Postal PIN Code <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="pincode" name="pincode" placeholder="6-digit PIN" pattern="[0-9]{6}" maxlength="6" value="{{ request.form.get('pincode', '') }}" data-mandatory="true">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Conditional Farmer Details Fields -->
+                    <div id="farmerFields" class="mb-3" style="display: none;">
+                        <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">Farm Information</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="farm_name" class="form-label fw-semibold">Farm / Enterprise Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="farm_name" name="farm_name" placeholder="e.g. Green Valley Agro Farm" value="{{ request.form.get('farm_name', '') }}" data-mandatory="true">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="farming_type" class="form-label fw-semibold">Farming Methodology <span class="text-danger">*</span></label>
+                                <select class="form-select" id="farming_type" name="farming_type" data-mandatory="true">
+                                    <option value="organic">Organic Farming</option>
+                                    <option value="conventional" selected>Conventional Farming</option>
+                                    <option value="mixed">Mixed / Natural Farming</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label for="farm_address" class="form-label fw-semibold">Farm Location / Land Address <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="farm_address" name="farm_address" rows="2" placeholder="e.g. Survey No. 42/B, Perundurai Road, Erode" data-mandatory="true">{{ request.form.get('farm_address', '') }}</textarea>
+                            </div>
+                        </div>
+                        <div class="alert alert-info py-2 mt-3 small">
+                            <i class="bi bi-info-circle me-1"></i> Note: New farmer accounts will have initial status <strong>pending</strong> until verified by Administrator.
+                        </div>
+                    </div>
+
+                    <!-- Step 5: Password Setup -->
+                    <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">Security</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="password" class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Min. 6 characters" minlength="6" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="confirm_password" class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Re-enter password" minlength="6" required>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mb-3">
+                        <button type="submit" class="btn btn-farm btn-lg">Create FarmDirect Account</button>
+                    </div>
+
+                    <div class="text-center small text-muted">
+                        Already have an account? <a href="{{ url_for('login') }}" class="text-success fw-bold text-decoration-none">Sign In here</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

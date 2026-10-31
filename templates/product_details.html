@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.product_name }} – FarmDirect{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-success text-decoration-none">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('products') }}" class="text-success text-decoration-none">Products</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('products', category=product.category_id) }}" class="text-success text-decoration-none">{{ product.category_name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ product.product_name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Product Image & Primary Details -->
+        <div class="col-lg-5">
+            <!-- Main Product Image -->
+            <div class="card card-custom p-3 text-center mb-4">
+                <div class="product-detail-img-wrapper mb-3">
+                    <img src="{{ get_product_image_url(product.image_filename) }}" alt="{{ product.product_name }}" class="product-detail-img">
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="badge bg-light text-dark border p-2">Category: {{ product.category_name }}</span>
+                    <span class="badge bg-success p-2"><i class="bi bi-patch-check-fill me-1"></i>Admin Approved</span>
+                </div>
+            </div>
+
+            <!-- Farmer Profile Card -->
+            <div class="card card-custom p-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <img src="{{ get_user_avatar_url(product.profile_image, 'farmer') }}" alt="{{ product.farmer_name }}" class="avatar-img avatar-md">
+                    <div>
+                        <h5 class="fw-bold text-success mb-0">{{ product.farm_name }}</h5>
+                        <p class="text-muted small mb-0"><i class="bi bi-person me-1"></i>{{ product.farmer_name }}</p>
+                    </div>
+                </div>
+                <hr class="my-2">
+                <ul class="list-unstyled mb-0 small">
+                    <li class="mb-2"><i class="bi bi-geo-alt text-success me-2"></i><strong>Location:</strong> {{ product.farm_address }}</li>
+                    <li class="mb-2"><i class="bi bi-building text-success me-2"></i><strong>Region:</strong> {{ product.city }}, {{ product.state }}</li>
+                    <li class="mb-2">
+                        <i class="bi bi-flower1 text-success me-2"></i><strong>Farming Type:</strong>
+                        <span class="badge bg-success bg-opacity-10 text-success text-capitalize border border-success">{{ product.farming_type }}</span>
+                    </li>
+                    <li class="mb-0">
+                        <i class="bi bi-shield-check text-success me-2"></i><strong>Verification:</strong>
+                        <span class="badge bg-success">Verified Producer</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Product Purchase Information -->
+        <div class="col-lg-7">
+            <div class="card card-custom p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h2 class="fw-bold mb-0">{{ product.product_name }}</h2>
+                    <span class="badge badge-status-available fs-6">In Stock</span>
+                </div>
+
+                <!-- Star Rating Summary -->
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="star-rating fs-5">
+                        {% set avg = avg_rating|default(0)|float %}
+                        {% for i in range(1, 6) %}
+                            {% if i <= avg %}
+                                <i class="bi bi-star-fill text-warning"></i>
+                            {% elif i - 0.5 <= avg %}
+                                <i class="bi bi-star-half text-warning"></i>
+                            {% else %}
+                                <i class="bi bi-star text-muted"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="fw-bold">{{ "%.1f"|format(avg) }} / 5.0</span>
+                    <span class="text-muted small">({{ reviews|length }} customer reviews)</span>
+                </div>
+
+                <!-- Price and Harvest -->
+                <div class="p-3 bg-light rounded-3 mb-4">
+                    <div class="d-flex align-items-baseline gap-2">
+                        <span class="display-6 fw-bold text-success">₹{{ "%.2f"|format(product.price) }}</span>
+                        <span class="text-muted fs-5">/ {{ product.unit }}</span>
+                    </div>
+                    <div class="row g-2 mt-2 pt-2 border-top text-muted small">
+                        <div class="col-6">
+                            <i class="bi bi-calendar-check me-1 text-success"></i><strong>Harvested:</strong> {{ product.harvest_date }}
+                        </div>
+                        <div class="col-6">
+                            <i class="bi bi-box-seam me-1 text-success"></i><strong>Available Stock:</strong> {{ "%.0f"|format(product.available_quantity) }} {{ product.unit }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <h5 class="fw-bold mb-2">Produce Details</h5>
+                <p class="text-secondary mb-4">
+                    {{ product.description or "Fresh, directly harvested agricultural produce from verified local farm." }}
+                </p>
+
+                <!-- Add to Cart Form -->
+                {% if product.available_quantity > 0 %}
+                    <form method="POST" action="{{ url_for('add_to_cart', product_id=product.product_id) }}" class="p-3 border rounded-3 bg-light">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-sm-6">
+                                <label for="quantity" class="form-label fw-semibold">Select Quantity ({{ product.unit }})</label>
+                                <div class="input-group qty-control-group">
+                                    <button class="btn btn-outline-secondary qty-btn-minus" type="button">-</button>
+                                    <input type="number" class="form-control text-center qty-control-input fw-bold" id="quantity" name="quantity" value="1" min="1" max="{{ product.available_quantity }}" step="1" required>
+                                    <button class="btn btn-outline-secondary qty-btn-plus" type="button">+</button>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                {% if session.get('role') == 'customer' %}
+                                    <button type="submit" class="btn btn-farm w-100 py-2">
+                                        <i class="bi bi-cart-plus me-2"></i>Add To Cart
+                                    </button>
+                                {% elif not session.get('user_id') %}
+                                    <a href="{{ url_for('login') }}?next={{ request.path }}" class="btn btn-farm w-100 py-2">
+                                        <i class="bi bi-box-arrow-in-right me-2"></i>Login to Purchase
+                                    </a>
+                                {% else %}
+                                    <button type="button" class="btn btn-secondary w-100 py-2" disabled>
+                                        Customer Account Required
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="alert alert-danger mb-0">
+                        <i class="bi bi-exclamation-octagon me-2"></i>This produce is currently out of stock.
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Verified Customer Reviews -->
+            <div class="card card-custom p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-chat-heart text-success me-2"></i>Verified Customer Reviews
+                    </h5>
+                    <span class="badge bg-light text-dark border">{{ reviews|length }} Total</span>
+                </div>
+
+                {% if reviews %}
+                    <div class="d-flex flex-column gap-3">
+                        {% for rev in reviews %}
+                            <div class="p-3 bg-light rounded-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="{{ get_user_avatar_url(rev.customer_profile_image, 'customer') }}" alt="{{ rev.customer_name }}" class="avatar-img avatar-sm" style="width: 32px; height: 32px;">
+                                        <div>
+                                            <strong class="d-block text-dark">{{ rev.customer_name }}</strong>
+                                            <small class="text-muted">{{ rev.review_date }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="star-rating small">
+                                        {% for i in range(1, 6) %}
+                                            {% if i <= rev.rating %}
+                                                <i class="bi bi-star-fill text-warning"></i>
+                                            {% else %}
+                                                <i class="bi bi-star text-muted"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <p class="text-secondary small mb-0">
+                                    {{ rev.review_text or "Verified purchase: Excellent quality produce." }}
+                                </p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-chat-square-dots display-6 mb-2 d-block"></i>
+                        <p class="mb-0">No reviews yet for this harvest. Be the first to try it and leave feedback!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Delivery Partner Portal – FarmDirect{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Partner Info Banner -->
+    <div class="card card-custom p-4 mb-4 border-start border-warning border-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="position-relative">
+                    <img src="{{ get_user_avatar_url(partner.profile_image, 'delivery_partner') }}" alt="{{ session.get('full_name') }}" class="avatar-img avatar-lg">
+                    <button type="button" class="btn btn-sm btn-light border rounded-circle position-absolute bottom-0 end-0 p-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#profilePhotoModal" title="Change Photo">
+                        <i class="bi bi-camera text-warning"></i>
+                    </button>
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <h3 class="fw-bold text-dark mb-0">{{ session.get('full_name') }}</h3>
+                        <span class="badge bg-warning text-dark"><i class="bi bi-truck me-1"></i>Delivery Partner</span>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-bicycle me-1"></i>Vehicle: <strong class="text-uppercase">{{ partner.vehicle_type }} ({{ partner.vehicle_number }})</strong> | 
+                        <i class="bi bi-circle-fill me-1 {% if partner.availability_status == 'available' %}text-success{% else %}text-warning{% endif %}"></i>Status: <strong class="text-capitalize">{{ partner.availability_status }}</strong>
+                    </p>
+                </div>
+            </div>
+            <div>
+                <span class="badge bg-light text-dark border p-2">
+                    <i class="bi bi-geo-alt text-danger me-1"></i>{{ partner.city }}, {{ partner.state }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Stat Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card stat-card-blue">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number">{{ stats.assigned_count }}</div>
+                        <div class="small text-white-50">Pending Pickup</div>
+                    </div>
+                    <div class="stat-icon"><i class="bi bi-box-seam"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="stat-card stat-card-amber">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number">{{ stats.transit_count }}</div>
+                        <div class="small text-white-50">Out For Delivery</div>
+                    </div>
+                    <div class="stat-icon"><i class="bi bi-truck"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="stat-card stat-card-green">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number">{{ stats.delivered_count }}</div>
+                        <div class="small text-white-50">Completed Deliveries</div>
+                    </div>
+                    <div class="stat-icon"><i class="bi bi-check2-circle"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assigned Deliveries Table -->
+    <div class="card card-custom p-4">
+        <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">
+            <i class="bi bi-list-task text-warning me-2"></i>Assigned Shipments
+        </h5>
+
+        {% if deliveries %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Order #</th>
+                            <th>Customer & Destination</th>
+                            <th>Amount</th>
+                            <th>Pickup Status</th>
+                            <th>Delivery Status</th>
+                            <th>Assigned Time</th>
+                            <th class="text-center" style="min-width: 200px;">Update Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for del in deliveries %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-secondary fs-6">#{{ del.order_id }}</span><br>
+                                    <small class="text-muted text-uppercase">{{ del.payment_method }} ({{ del.payment_status }})</small>
+                                </td>
+                                <td>
+                                    <strong>{{ del.customer_name }}</strong><br>
+                                    <small class="text-muted"><i class="bi bi-geo-alt text-danger me-1"></i>{{ del.delivery_address }}, {{ del.pincode }}</small><br>
+                                    <small class="text-muted"><i class="bi bi-telephone me-1"></i>{{ del.customer_phone }}</small>
+                                </td>
+                                <td><strong class="text-success">₹{{ "%.2f"|format(del.total_amount) }}</strong></td>
+                                <td>
+                                    {% if del.pickup_status == 'picked_up' %}
+                                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Picked Up</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Pending Pickup</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge badge-status-{{ del.delivery_status }} text-capitalize">
+                                        {{ del.delivery_status|replace('_', ' ') }}
+                                    </span>
+                                </td>
+                                <td><small class="text-muted">{{ del.assigned_at }}</small></td>
+                                <td class="text-center">
+                                    <form method="POST" action="{{ url_for('delivery_update_status', delivery_id=del.delivery_id) }}" class="d-inline">
+                                        <div class="input-group input-group-sm">
+                                            <select name="delivery_status" class="form-select form-select-sm">
+                                                <option value="picked_up" {% if del.delivery_status == 'picked_up' %}selected{% endif %}>Picked Up from Farm</option>
+                                                <option value="out_for_delivery" {% if del.delivery_status == 'out_for_delivery' %}selected{% endif %}>Out for Delivery</option>
+                                                <option value="delivered" {% if del.delivery_status == 'delivered' %}selected{% endif %}>Delivered (Paid)</option>
+                                                <option value="failed" {% if del.delivery_status == 'failed' %}selected{% endif %}>Delivery Failed / Cancelled</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-warning btn-sm">Update</button>
+                                        </div>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-truck display-4 mb-2 d-block"></i>
+                <p class="mb-0">No shipments currently assigned to you. Check back shortly!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

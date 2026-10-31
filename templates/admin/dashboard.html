@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+
+{% block title %}Administrator Hub – FarmDirect{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Admin Hub Header -->
+    <div class="card card-custom p-4 mb-4 border-start border-danger border-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <h3 class="fw-bold text-dark mb-0">Marketplace Administration Hub</h3>
+                    <span class="badge bg-danger">System Administrator</span>
+                </div>
+                <p class="text-muted small mb-0">Manage Farmer Verifications, Product Approvals, Platform Orders, and Customer Complaints</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('admin_farmers') }}" class="btn btn-warning btn-sm fw-bold">
+                    <i class="bi bi-person-check me-1"></i>Farmer Verification
+                </a>
+                <a href="{{ url_for('admin_products') }}" class="btn btn-success btn-sm fw-bold">
+                    <i class="bi bi-boxes me-1"></i>Product Approvals
+                </a>
+                <a href="{{ url_for('admin_complaints') }}" class="btn btn-danger btn-sm">
+                    <i class="bi bi-chat-left-dots me-1"></i>Complaints
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Farmer Statistics Cards -->
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="fw-bold text-dark mb-0"><i class="bi bi-people text-success me-2"></i>Farmers Overview</h5>
+            <a href="{{ url_for('admin_farmers') }}" class="small text-decoration-none">Manage All Farmers &rarr;</a>
+        </div>
+        <div class="row g-3">
+            <div class="col-6 col-md-3">
+                <div class="stat-card stat-card-green">
+                    <div class="stat-number">{{ stats.total_farmers }}</div>
+                    <div class="small text-white-50">Total Farmers</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card stat-card-amber">
+                    <div class="stat-number">{{ stats.pending_farmers }}</div>
+                    <div class="small text-white-50">Pending Verification</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card stat-card-teal">
+                    <div class="stat-number">{{ stats.verified_farmers }}</div>
+                    <div class="small text-white-50">Verified Farmers</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card bg-danger">
+                    <div class="stat-number">{{ stats.rejected_farmers }}</div>
+                    <div class="small text-white-50">Rejected Farmers</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Approval Statistics Cards -->
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="fw-bold text-dark mb-0"><i class="bi bi-boxes text-primary me-2"></i>Product Approvals Overview</h5>
+            <a href="{{ url_for('admin_products') }}" class="small text-decoration-none">Manage All Products &rarr;</a>
+        </div>
+        <div class="row g-3">
+            <div class="col-6 col-md-3">
+                <div class="stat-card stat-card-blue">
+                    <div class="stat-number">{{ stats.total_products }}</div>
+                    <div class="small text-white-50">Total Products</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card stat-card-amber">
+                    <div class="stat-number">{{ stats.pending_products }}</div>
+                    <div class="small text-white-50">Pending Approval</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card stat-card-green">
+                    <div class="stat-number">{{ stats.approved_products }}</div>
+                    <div class="small text-white-50">Approved for Sale</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card bg-danger">
+                    <div class="stat-number">{{ stats.rejected_products }}</div>
+                    <div class="small text-white-50">Rejected Products</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Platform Highlights: Customers, Orders, Complaints -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card stat-card-purple">
+                <div class="stat-number">{{ stats.total_customers }}</div>
+                <div class="small text-white-50">Active Customers</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card stat-card-teal">
+                <div class="stat-number">{{ stats.total_orders }}</div>
+                <div class="small text-white-50">Total Orders Processed</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card bg-secondary">
+                <div class="stat-number">{{ stats.pending_complaints }}</div>
+                <div class="small text-white-50">Open Customer Complaints</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section A & Section B -->
+    <div class="row g-4 mb-4">
+        <!-- Section A: Farmer Verification -->
+        <div class="col-lg-6">
+            <div class="card card-custom p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span class="badge bg-warning text-dark mb-1">Section A</span>
+                        <h5 class="fw-bold mb-0 text-dark">
+                            <i class="bi bi-person-check text-warning me-2"></i>Pending Farmer Verifications
+                        </h5>
+                    </div>
+                    <a href="{{ url_for('admin_farmers', status='pending') }}" class="btn btn-sm btn-outline-secondary">View All</a>
+                </div>
+
+                {% if pending_farmers %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Farmer</th>
+                                    <th>Farm Details</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for f in pending_farmers %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <img src="{{ get_user_avatar_url(f.profile_image, 'farmer') }}" alt="{{ f.full_name }}" class="avatar-img" style="width: 32px; height: 32px;">
+                                                <div>
+                                                    <strong>{{ f.full_name }}</strong><br>
+                                                    <span class="text-muted">{{ f.city }}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <strong class="text-success">{{ f.farm_name }}</strong><br>
+                                            <span class="badge bg-light text-dark border text-capitalize">{{ f.farming_type }}</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <form method="POST" action="{{ url_for('admin_verify_farmer', farmer_id=f.farmer_id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-success btn-sm py-1 px-2" data-confirm="Are you sure you want to verify and approve this farmer?" title="Verify Farmer">
+                                                    <i class="bi bi-check-lg me-1"></i>Verify
+                                                </button>
+                                            </form>
+                                            <form method="POST" action="{{ url_for('admin_reject_farmer', farmer_id=f.farmer_id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm py-1 px-2" data-confirm="Are you sure you want to reject this farmer?" title="Reject Farmer">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted small">
+                        <i class="bi bi-check-circle fs-3 text-success d-block mb-2"></i>
+                        No pending farmer verification requests. All farmers are processed!
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Section B: Product Approval -->
+        <div class="col-lg-6">
+            <div class="card card-custom p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span class="badge bg-success mb-1">Section B</span>
+                        <h5 class="fw-bold mb-0 text-dark">
+                            <i class="bi bi-boxes text-success me-2"></i>Pending Product Approvals
+                        </h5>
+                    </div>
+                    <a href="{{ url_for('admin_products', approval='pending') }}" class="btn btn-sm btn-outline-secondary">View All</a>
+                </div>
+
+                {% if pending_products %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Produce</th>
+                                    <th>Price & Farmer</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in pending_products %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <img src="{{ get_product_image_url(p.image_filename) }}" alt="{{ p.product_name }}" class="product-thumb-sm" style="width: 40px; height: 40px;">
+                                                <div>
+                                                    <strong>{{ p.product_name }}</strong><br>
+                                                    <span class="badge bg-light text-dark border">{{ p.category_name }}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <strong class="text-success">₹{{ "%.2f"|format(p.price) }}</strong>/{{ p.unit }}<br>
+                                            <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ p.farm_name }}</small>
+                                        </td>
+                                        <td class="text-end">
+                                            <form method="POST" action="{{ url_for('admin_approve_product', product_id=p.product_id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-success btn-sm py-1 px-2" data-confirm="Are you sure you want to approve this crop for customer purchase?" title="Approve Product">
+                                                    <i class="bi bi-check-lg me-1"></i>Approve
+                                                </button>
+                                            </form>
+                                            <form method="POST" action="{{ url_for('admin_reject_product', product_id=p.product_id) }}" class="d-inline">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm py-1 px-2" data-confirm="Are you sure you want to reject this product?" title="Reject Product">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-muted small">
+                        <i class="bi bi-check-circle fs-3 text-success d-block mb-2"></i>
+                        No pending product approvals. All submitted crops are reviewed!
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Platform Orders -->
+    <div class="card card-custom p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="bi bi-clock-history text-primary me-2"></i>Recent Marketplace Orders
+            </h5>
+            <a href="{{ url_for('admin_orders') }}" class="btn btn-sm btn-outline-secondary">View All Orders</a>
+        </div>
+
+        {% if recent_orders %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Order #</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Order Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ord in recent_orders %}
+                            <tr>
+                                <td><strong>#{{ ord.order_id }}</strong></td>
+                                <td>{{ ord.customer_name }}</td>
+                                <td><strong class="text-success">₹{{ "%.2f"|format(ord.total_amount) }}</strong></td>
+                                <td>
+                                    <span class="badge badge-status-{{ ord.order_status }} text-capitalize">
+                                        {{ ord.order_status|replace('_', ' ') }}
+                                    </span>
+                                </td>
+                                <td><small class="text-muted">{{ ord.order_date }}</small></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-4 text-muted small">
+                No recent orders on the marketplace.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Site Dashboard - Builder Portal{% endblock %}
+{% block page_title %}Site Engineer Operations Portal{% endblock %}
+
+{% block content %}
+<!-- Welcome & Quick Stats for Builder -->
+<div class="card bg-dark text-white border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #1c1917 0%, #292524 100%);">
+  <div class="card-body p-4">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="badge bg-warning text-dark"><i class="bi bi-person-badge-fill me-1"></i>Site Engineer</span>
+          <span class="text-white-50 small">Active Site Session</span>
+        </div>
+        <h3 class="fw-bold text-white mb-1">Welcome, {{ session.get('user_name') }}</h3>
+        <p class="text-white-50 mb-0 small">
+          Submit verified construction progress and site material stock updates directly from your project locations.
+        </p>
+      </div>
+      <div class="col-md-4 mt-3 mt-md-0 text-md-end">
+        <a href="{{ url_for('builder_my_updates') }}" class="btn btn-warning text-dark fw-semibold shadow-sm">
+          <i class="bi bi-clock-history me-1"></i>Track My Submissions
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Builder Status Metric Counters -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div>
+        <div class="stat-value text-primary">{{ my_stats.assigned_count or 0 }}</div>
+        <div class="stat-label">Assigned Houses</div>
+      </div>
+      <div class="stat-icon primary"><i class="bi bi-houses"></i></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div>
+        <div class="stat-value text-info">{{ my_stats.in_progress_count or 0 }}</div>
+        <div class="stat-label">Under Construction</div>
+      </div>
+      <div class="stat-icon info"><i class="bi bi-tools"></i></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div>
+        <div class="stat-value text-warning">{{ my_stats.pending_updates_count or 0 }}</div>
+        <div class="stat-label">Pending Approval</div>
+      </div>
+      <div class="stat-icon warning"><i class="bi bi-hourglass-split"></i></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div>
+        <div class="stat-value text-success">{{ my_stats.approved_updates_count or 0 }}</div>
+        <div class="stat-label">Approved Updates</div>
+      </div>
+      <div class="stat-icon success"><i class="bi bi-check-circle"></i></div>
+    </div>
+  </div>
+</div>
+
+<!-- My Assigned Houses (Mobile-Friendly Responsive Cards) -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="fw-bold text-dark mb-0">
+    <i class="bi bi-geo-alt-fill text-danger me-1"></i>My Assigned Sites & Houses
+  </h5>
+  <span class="badge bg-light text-muted border font-monospace">{{ assigned_houses|length }} Assigned</span>
+</div>
+
+{% if assigned_houses %}
+<div class="row g-3 mb-4">
+  {% for house in assigned_houses %}
+  <div class="col-12 col-md-6 col-xl-4">
+    <div class="builder-house-card h-100 d-flex flex-column justify-content-between">
+      <div>
+        <!-- Card Header -->
+        <div class="builder-house-card-header d-flex justify-content-between align-items-center">
+          <div>
+            <span class="fs-5 fw-bold font-monospace text-white">{{ house.house_number }}</span>
+            <span class="badge bg-light text-dark ms-2">{{ house.bhk }}</span>
+          </div>
+          <span class="badge {% if house.status == 'Completed' %}bg-success{% elif house.status == 'Under Construction' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+            {{ house.status }}
+          </span>
+        </div>
+
+        <!-- Card Body -->
+        <div class="p-3">
+          <div class="mb-2">
+            <span class="fw-semibold text-dark">{{ house.house_type }}</span>
+            <span class="text-muted small">({{ house.area_sqft }} sq.ft)</span>
+          </div>
+          <div class="text-muted small mb-3">
+            <i class="bi bi-geo-alt me-1 text-danger"></i>{{ house.location }}
+          </div>
+
+          <!-- Progress Bar & Stage -->
+          <div class="bg-light p-2.5 rounded border mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="small fw-semibold text-muted">Stage:</span>
+              <span class="badge badge-stage">{{ house.construction_stage }}</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 mt-2">
+              <div class="progress flex-grow-1" style="height: 8px;">
+                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ house.progress_pct }}%;" aria-valuenow="{{ house.progress_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+              <span class="small fw-bold text-dark font-monospace">{{ house.progress_pct }}%</span>
+            </div>
+          </div>
+
+          <!-- Timeline Dates -->
+          <div class="small text-muted mb-2">
+            <div><i class="bi bi-calendar3 me-1"></i>Start: {{ house.start_date or 'N/A' }}</div>
+            {% if house.last_update_date %}
+              <div><i class="bi bi-clock-history me-1"></i>Last Updated: {{ house.last_update_date }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Actions (Touch-Friendly Buttons) -->
+      <div class="p-3 pt-0 mt-auto">
+        <div class="row g-2">
+          <div class="col-6">
+            <a href="{{ url_for('builder_construction_update', house_id=house.house_id) }}" class="btn btn-outline-primary btn-sm w-100 py-2 fw-semibold text-nowrap">
+              <i class="bi bi-arrow-up-circle me-1"></i>Progress
+            </a>
+          </div>
+          <div class="col-6">
+            <a href="{{ url_for('builder_stock_update', house_id=house.house_id) }}" class="btn btn-outline-warning text-dark btn-sm w-100 py-2 fw-semibold text-nowrap">
+              <i class="bi bi-boxes me-1"></i>Stock / Usage
+            </a>
+          </div>
+          <div class="col-12">
+            <a href="{{ url_for('house_details', house_id=house.house_id) }}" class="btn btn-light border btn-sm w-100 py-2 text-muted fw-medium text-nowrap">
+              <i class="bi bi-eye me-1"></i>View Site Specs & Materials
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card p-5 text-center text-muted mb-4 shadow-sm">
+  <i class="bi bi-house-dash display-4 mb-2 text-warning"></i>
+  <h5>No Houses Currently Assigned</h5>
+  <p class="small mb-0">You have no active house construction assignments. Please contact the administrator for project allocation.</p>
+</div>
+{% endif %}
+
+<!-- Recent Submissions Table -->
+<div class="card shadow-sm">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span class="fw-bold text-dark"><i class="bi bi-clock-history me-2 text-primary"></i>My Recent Submissions</span>
+    <a href="{{ url_for('builder_my_updates') }}" class="btn btn-sm btn-outline-primary">View All</a>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Type</th>
+            <th>House</th>
+            <th>Details</th>
+            <th>Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sub in recent_submissions %}
+          <tr>
+            <td>
+              {% if sub.update_category == 'Construction' %}
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="bi bi-tools me-1"></i>Progress</span>
+              {% else %}
+                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle"><i class="bi bi-boxes me-1"></i>Stock / Usage</span>
+              {% endif %}
+            </td>
+            <td class="fw-bold font-monospace text-dark">{{ sub.house_number }}</td>
+            <td class="small">{{ sub.details }}</td>
+            <td class="small text-muted">{{ sub.update_date }}</td>
+            <td>
+              {% if sub.status == 'APPROVED' %}
+                <span class="badge bg-success"><i class="bi bi-check2 me-1"></i>Approved</span>
+              {% elif sub.status == 'PENDING' %}
+                <span class="badge bg-warning text-dark"><i class="bi bi-hourglass me-1"></i>Pending</span>
+              {% else %}
+                <span class="badge bg-danger"><i class="bi bi-x me-1"></i>Rejected</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5" class="text-center text-muted py-3">No recent submissions found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

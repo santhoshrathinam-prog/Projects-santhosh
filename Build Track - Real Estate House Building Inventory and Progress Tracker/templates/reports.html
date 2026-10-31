@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+
+{% block title %}Reports & Analytics - BuildTrack Inventory{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header Section -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 fw-bold text-dark mb-1">
+                <i class="bi bi-file-earmark-bar-graph-fill text-primary me-2"></i>Executive Reports & Audit
+            </h2>
+            <p class="text-muted mb-0">Official inventory valuation, house material tracking, builder activity audits, and transactions ledger.</p>
+        </div>
+        <div class="d-flex gap-2 mt-2 mt-md-0 no-print">
+            <a href="{{ url_for('download_pdf_report') }}" class="btn btn-danger shadow-sm">
+                <i class="bi bi-file-earmark-pdf-fill me-1"></i> Download Executive PDF
+            </a>
+            <button onclick="window.print()" class="btn btn-outline-secondary">
+                <i class="bi bi-printer-fill me-1"></i> Print Current View
+            </button>
+        </div>
+    </div>
+
+    <!-- Printable Official Header (Visible Only When Printing) -->
+    <div class="d-none d-print-block mb-4 text-center border-bottom pb-3">
+        <h2 class="fw-bold text-dark">BuildTrack Construction & Inventory Management</h2>
+        <p class="mb-1 text-muted">Official System Report | Generated on: {{ report_date }}</p>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs custom-tabs mb-4 no-print" id="reportTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if active_tab == 'inventory' %}active{% endif %}" id="inventory-tab" data-bs-toggle="tab" data-bs-target="#inventory" type="button" role="tab">
+                <i class="bi bi-boxes me-2"></i>Inventory Valuation
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if active_tab == 'house-materials' %}active{% endif %}" id="house-materials-tab" data-bs-toggle="tab" data-bs-target="#house-materials" type="button" role="tab">
+                <i class="bi bi-house-door me-2"></i>House Material Tracking
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if active_tab == 'builder-updates' %}active{% endif %}" id="builder-updates-tab" data-bs-toggle="tab" data-bs-target="#builder-updates" type="button" role="tab">
+                <i class="bi bi-person-lines-fill me-2"></i>Builder Site Activities
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if active_tab == 'transactions' %}active{% endif %}" id="transactions-tab" data-bs-toggle="tab" data-bs-target="#transactions" type="button" role="tab">
+                <i class="bi bi-journal-text me-2"></i>Transactions Ledger
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="reportTabsContent">
+
+        <!-- TAB 1: INVENTORY VALUATION REPORT -->
+        <div class="tab-pane fade {% if active_tab == 'inventory' %}show active{% endif %}" id="inventory" role="tabpanel">
+            <!-- Summary KPI Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100 border-start border-4 border-primary">
+                        <small class="text-muted text-uppercase fw-semibold">Total SKUs</small>
+                        <h3 class="fw-bold mb-0 mt-1">{{ inventory_data|length }}</h3>
+                        <small class="text-muted">Master Materials</small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100 border-start border-4 border-success">
+                        <small class="text-muted text-uppercase fw-semibold">Inventory Valuation</small>
+                        {% set total_val = namespace(sum=0) %}
+                        {% for item in inventory_data %}
+                            {% set total_val.sum = total_val.sum + (item.total_value|float) %}
+                        {% endfor %}
+                        <h3 class="fw-bold mb-0 mt-1 text-success">&#8377;{{ "{:,.2f}".format(total_val.sum) }}</h3>
+                        <small class="text-muted">Current Stock Value</small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100 border-start border-4 border-warning">
+                        <small class="text-muted text-uppercase fw-semibold">Low Stock SKUs</small>
+                        {% set low_count = namespace(sum=0) %}
+                        {% for item in inventory_data %}
+                            {% if item.stock_status == 'LOW STOCK' %}
+                                {% set low_count.sum = low_count.sum + 1 %}
+                            {% endif %}
+                        {% endfor %}
+                        <h3 class="fw-bold mb-0 mt-1 text-warning">{{ low_count.sum }}</h3>
+                        <small class="text-muted">Reorder Threshold Met</small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100 border-start border-4 border-danger">
+                        <small class="text-muted text-uppercase fw-semibold">Out of Stock</small>
+                        {% set oos_count = namespace(sum=0) %}
+                        {% for item in inventory_data %}
+                            {% if item.stock_status == 'OUT OF STOCK' %}
+                                {% set oos_count.sum = oos_count.sum + 1 %}
+                            {% endif %}
+                        {% endfor %}
+                        <h3 class="fw-bold mb-0 mt-1 text-danger">{{ oos_count.sum }}</h3>
+                        <small class="text-muted">Requires Immediate Action</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Card -->
+            <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+                <div class="card-header bg-white py-3 d-flex flex-wrap justify-content-between align-items-center">
+                    <h5 class="card-title fw-bold text-dark mb-0">Master Inventory Valuation Schedule</h5>
+                    <div class="d-flex gap-2 no-print">
+                        <a href="{{ url_for('export_csv', report_type='inventory') }}" class="btn btn-sm btn-success">
+                            <i class="bi bi-filetype-csv me-1"></i> Export CSV
+                        </a>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Material Name</th>
+                                <th>Category</th>
+                                <th>Storage Location</th>
+                                <th class="text-end">Available Stock</th>
+                                <th class="text-end">Min Threshold</th>
+                                <th class="text-end">Unit Price</th>
+                                <th class="text-end">Total Valuation</th>
+                                <th class="text-center">Stock Status</th>
+                                <th>Primary Supplier</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in inventory_data %}
+                            <tr>
+                                <td class="text-muted">{{ loop.index }}</td>
+                                <td class="fw-semibold text-dark">{{ item.material_name }}</td>
+                                <td><span class="badge bg-secondary-subtle text-secondary">{{ item.category }}</span></td>
+                                <td class="small text-muted">{{ item.storage_location or 'Central Warehouse' }}</td>
+                                <td class="text-end fw-bold">{{ "{:,.2f}".format(item.available_quantity) }} <small class="text-muted">{{ item.unit }}</small></td>
+                                <td class="text-end text-muted">{{ "{:,.2f}".format(item.minimum_stock_level) }} <small>{{ item.unit }}</small></td>
+                                <td class="text-end">&#8377;{{ "{:,.2f}".format(item.unit_price) }}</td>
+                                <td class="text-end fw-bold text-dark">&#8377;{{ "{:,.2f}".format(item.total_value) }}</td>
+                                <td class="text-center">
+                                    {% if item.stock_status == 'AVAILABLE' %}
+                                        <span class="badge bg-success-subtle text-success">AVAILABLE</span>
+                                    {% elif item.stock_status == 'LOW STOCK' %}
+                                        <span class="badge bg-warning-subtle text-warning text-dark">LOW STOCK</span>
+                                    {% else %}
+                                        <span class="badge bg-danger-subtle text-danger">OUT OF STOCK</span>
+                                    {% endif %}
+                                </td>
+                                <td class="small text-muted">{{ item.supplier_name or 'Not Assigned' }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="10" class="text-center py-4 text-muted">No material inventory data available.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="table-light fw-bold">
+                            <tr>
+                                <td colspan="7" class="text-end">Total Consolidated Inventory Valuation:</td>
+                                <td class="text-end text-success">&#8377;{{ "{:,.2f}".format(total_val.sum) }}</td>
+                                <td colspan="2"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: HOUSE MATERIAL TRACKING REPORT -->
+        <div class="tab-pane fade {% if active_tab == 'house-materials' %}show active{% endif %}" id="house-materials" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+                <div class="card-header bg-white py-3 d-flex flex-wrap justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title fw-bold text-dark mb-1">House-Wise Material Consumption & Variance</h5>
+                        <p class="small text-muted mb-0">Comprehensive tracking of required vs. approved site consumption per residential unit.</p>
+                    </div>
+                    <div class="d-flex gap-2 no-print">
+                        <a href="{{ url_for('export_csv', report_type='house-materials') }}" class="btn btn-sm btn-success">
+                            <i class="bi bi-filetype-csv me-1"></i> Export CSV
+                        </a>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>House Unit</th>
+                                <th>Type & Location</th>
+                                <th>Stage / Progress</th>
+                                <th>Material Name</th>
+                                <th>Category</th>
+                                <th class="text-end">Required Qty</th>
+                                <th class="text-end">Approved Used</th>
+                                <th class="text-end">Remaining Qty</th>
+                                <th class="text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in house_material_data %}
+                            <tr>
+                                <td class="fw-bold text-primary">{{ row.house_number }}</td>
+                                <td>
+                                    <div class="fw-semibold text-dark">{{ row.house_type }}</div>
+                                    <small class="text-muted">{{ row.location }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info-subtle text-dark">{{ row.construction_stage }}</span>
+                                    <div class="progress mt-1" style="height: 5px; width: 100px;">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: {{ row.progress_pct }}%"></div>
+                                    </div>
+                                    <small class="text-muted">{{ row.progress_pct }}%</small>
+                                </td>
+                                <td class="fw-semibold">{{ row.material_name }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ row.category }}</span></td>
+                                <td class="text-end fw-semibold">{{ "{:,.2f}".format(row.required_quantity) }} <small class="text-muted">{{ row.unit }}</small></td>
+                                <td class="text-end text-success fw-bold">{{ "{:,.2f}".format(row.approved_used_quantity) }} <small class="text-muted">{{ row.unit }}</small></td>
+                                <td class="text-end text-danger fw-bold">{{ "{:,.2f}".format(row.remaining_quantity) }} <small class="text-muted">{{ row.unit }}</small></td>
+                                <td class="text-center">
+                                    {% if row.status == 'COMPLETED' %}
+                                        <span class="badge bg-success-subtle text-success"><i class="bi bi-check-circle me-1"></i>Completed</span>
+                                    {% elif row.status == 'IN PROGRESS' %}
+                                        <span class="badge bg-primary-subtle text-primary"><i class="bi bi-gear-wide me-1"></i>In Progress</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary"><i class="bi bi-hourglass me-1"></i>Pending</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="9" class="text-center py-4 text-muted">No house material requirements recorded yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: BUILDER SITE ACTIVITIES REPORT -->
+        <div class="tab-pane fade {% if active_tab == 'builder-updates' %}show active{% endif %}" id="builder-updates" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+                <div class="card-header bg-white py-3 d-flex flex-wrap justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title fw-bold text-dark mb-1">Site Engineer Log & Audit Trail</h5>
+                        <p class="small text-muted mb-0">Consolidated history of field submissions including construction milestones and material consumption.</p>
+                    </div>
+                    <div class="d-flex gap-2 no-print">
+                        <a href="{{ url_for('export_csv', report_type='builder-updates') }}" class="btn btn-sm btn-success">
+                            <i class="bi bi-filetype-csv me-1"></i> Export CSV
+                        </a>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Type</th>
+                                <th>Site Engineer</th>
+                                <th>House Unit</th>
+                                <th>Details / Remarks</th>
+                                <th>Update Date</th>
+                                <th class="text-center">Approval Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for b_up in builder_updates_data %}
+                            <tr>
+                                <td>
+                                    {% if b_up.update_type == 'Construction Progress' %}
+                                        <span class="badge bg-primary-subtle text-primary"><i class="bi bi-hammer me-1"></i>Construction</span>
+                                    {% else %}
+                                        <span class="badge bg-info-subtle text-info text-dark"><i class="bi bi-box-seam me-1"></i>Material Stock</span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-semibold text-dark">{{ b_up.builder_name }}</td>
+                                <td class="fw-bold text-primary">{{ b_up.house_number }}</td>
+                                <td class="small">{{ b_up.details }}</td>
+                                <td>{{ b_up.update_date.strftime('%d-%m-%Y') if b_up.update_date else '-' }}</td>
+                                <td class="text-center">
+                                    {% if b_up.status == 'APPROVED' %}
+                                        <span class="badge bg-success-subtle text-success">APPROVED</span>
+                                    {% elif b_up.status == 'PENDING' %}
+                                        <span class="badge bg-warning-subtle text-warning text-dark">PENDING</span>
+                                    {% else %}
+                                        <span class="badge bg-danger-subtle text-danger">REJECTED</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">No site engineer updates logged.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: TRANSACTIONS LEDGER REPORT -->
+        <div class="tab-pane fade {% if active_tab == 'transactions' %}show active{% endif %}" id="transactions" role="tabpanel">
+            <!-- Summary KPI Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100 border-start border-4 border-primary">
+                        <small class="text-muted text-uppercase fw-semibold">Total Transactions</small>
+                        <h3 class="fw-bold mb-0 mt-1">{{ transactions_data|length }}</h3>
+                        <small class="text-muted">Recorded Entries</small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100 border-start border-4 border-success">
+                        <small class="text-muted text-uppercase fw-semibold">Total Stock Inwards (IN)</small>
+                        {% set in_cnt = namespace(sum=0) %}
+                        {% for tx in transactions_data %}
+                            {% if tx.transaction_type == 'IN' %}
+                                {% set in_cnt.sum = in_cnt.sum + 1 %}
+                            {% endif %}
+                        {% endfor %}
+                        <h3 class="fw-bold mb-0 mt-1 text-success">{{ in_cnt.sum }}</h3>
+                        <small class="text-muted">Purchases & Inward Receipts</small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100 border-start border-4 border-danger">
+                        <small class="text-muted text-uppercase fw-semibold">Total Stock Outwards (OUT)</small>
+                        {% set out_cnt = namespace(sum=0) %}
+                        {% for tx in transactions_data %}
+                            {% if tx.transaction_type == 'OUT' %}
+                                {% set out_cnt.sum = out_cnt.sum + 1 %}
+                            {% endif %}
+                        {% endfor %}
+                        <h3 class="fw-bold mb-0 mt-1 text-danger">{{ out_cnt.sum }}</h3>
+                        <small class="text-muted">Site Usage & Deductions</small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100 border-start border-4 border-dark">
+                        <small class="text-muted text-uppercase fw-semibold">Gross Material Outlay</small>
+                        {% set tx_val = namespace(sum=0) %}
+                        {% for tx in transactions_data %}
+                            {% if tx.transaction_type == 'IN' %}
+                                {% set tx_val.sum = tx_val.sum + (tx.total_cost|float) %}
+                            {% endif %}
+                        {% endfor %}
+                        <h3 class="fw-bold mb-0 mt-1 text-dark">&#8377;{{ "{:,.2f}".format(tx_val.sum) }}</h3>
+                        <small class="text-muted">Total Inward Purchase Value</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+                <div class="card-header bg-white py-3 d-flex flex-wrap justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title fw-bold text-dark mb-1">Stock Movement Audit Ledger</h5>
+                        <p class="small text-muted mb-0">Detailed double-entry ledger of all INWARD supplier deliveries and OUTWARD site consumption.</p>
+                    </div>
+                    <div class="d-flex gap-2 no-print">
+                        <a href="{{ url_for('export_csv', report_type='transactions') }}" class="btn btn-sm btn-success">
+                            <i class="bi bi-filetype-csv me-1"></i> Export CSV
+                        </a>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>TX ID</th>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Material Details</th>
+                                <th class="text-end">Quantity</th>
+                                <th class="text-end">Unit Price</th>
+                                <th class="text-end">Total Amount</th>
+                                <th>Destination / Entity</th>
+                                <th>Purpose / Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tx in transactions_data %}
+                            <tr>
+                                <td class="text-muted fw-bold">#TX-{{ "%04d"|format(tx.transaction_id) }}</td>
+                                <td>{{ tx.transaction_date.strftime('%d-%m-%Y') if tx.transaction_date else '-' }}</td>
+                                <td>
+                                    {% if tx.transaction_type == 'IN' %}
+                                        <span class="badge bg-success-subtle text-success fw-bold"><i class="bi bi-arrow-down-left me-1"></i>INWARD</span>
+                                    {% else %}
+                                        <span class="badge bg-danger-subtle text-danger fw-bold"><i class="bi bi-arrow-up-right me-1"></i>OUTWARD</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-dark">{{ tx.material_name }}</div>
+                                </td>
+                                <td class="text-end fw-bold">{{ "{:,.2f}".format(tx.quantity) }} <small class="text-muted">{{ tx.unit }}</small></td>
+                                <td class="text-end">&#8377;{{ "{:,.2f}".format(tx.unit_price) }}</td>
+                                <td class="text-end fw-bold text-dark">&#8377;{{ "{:,.2f}".format(tx.total_cost) }}</td>
+                                <td>
+                                    {% if tx.house_number %}
+                                        <span class="badge bg-primary-subtle text-primary"><i class="bi bi-house me-1"></i>{{ tx.house_number }}</span>
+                                    {% elif tx.supplier_name %}
+                                        <span class="badge bg-secondary-subtle text-secondary"><i class="bi bi-truck me-1"></i>{{ tx.supplier_name }}</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                    {% if tx.builder_name %}
+                                        <div class="small text-muted">By: {{ tx.builder_name }}</div>
+                                    {% endif %}
+                                </td>
+                                <td class="small text-muted">{{ tx.purpose or '-' }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="9" class="text-center py-4 text-muted">No transactions found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,3 +1,26 @@
+# 📂 Academic Projects Portfolio – Santhosh Rathinam M
+
+**Student**: Santhosh Rathinam M (`EA2532251010685`)  
+**Program**: Master of Computer Applications (MCA - Semester III)  
+**Institution**: Directorate of Online Education, SRM Institute of Science and Technology, Kattankulathur  
+
+---
+
+## 🏗️ Repository Projects
+
+This repository contains two major academic capstone deliverables:
+
+1. **[Build Track - Real Estate House Building Inventory and Progress Tracker](./Build%20Track%20-%20Real%20Estate%20House%20Building%20Inventory%20and%20Progress%20Tracker/)**  
+   *Internship Project (Nov 2026)*: Centralized, role-based real estate inventory management, house building milestone tracking, ACID concurrency row-level locking, and WebRTC camera field verification.
+   - [📁 Browse Project Folder & Code](./Build%20Track%20-%20Real%20Estate%20House%20Building%20Inventory%20and%20Progress%20Tracker/)
+   - [📄 Full Internship Report (.docx)](./Build%20Track%20-%20Real%20Estate%20House%20Building%20Inventory%20and%20Progress%20Tracker/reports/Build_Track_Real_Estate_Final_Internship_Report.docx)
+   - [📊 Viva Voce Presentation (.pptx)](./Build%20Track%20-%20Real%20Estate%20House%20Building%20Inventory%20and%20Progress%20Tracker/reports/Build_Track_Real_Estate_Internship_Viva_Presentation.pptx)
+
+2. **[FarmDirect – Farmer-to-Consumer Agricultural Marketplace](#-farmdirect--farmer-to-consumer-agricultural-marketplace)**  
+   *Mini-Project*: Direct digital marketplace connecting local agricultural farmers directly with end-consumers with two-tier quality verification and demo payment simulation.
+
+---
+
 # 🌱 FarmDirect – Farmer-to-Consumer Agricultural Marketplace
 
 **FarmDirect** is a complete, beginner-friendly web application designed as a **College Mini-Project**. It establishes a direct digital marketplace connecting local agricultural farmers directly with end-consumers, bypassing multi-tiered commission agents and wholesale middlemen to ensure fair remuneration for farmers and fresh produce for consumers.

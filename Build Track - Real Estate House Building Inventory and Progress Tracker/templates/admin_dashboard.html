@@ -1,0 +1,378 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+{% block page_title %}Executive Construction & Inventory Dashboard{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+  <!-- House Statistics -->
+  <div class="col-12">
+    <div class="d-flex align-items-center justify-content-between mb-2">
+      <h6 class="text-uppercase fw-bold text-muted small mb-0"><i class="bi bi-houses me-1 text-primary"></i>House Portfolio Statistics</h6>
+      <a href="{{ url_for('houses') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-circle me-1"></i>Manage Houses</a>
+    </div>
+    <div class="row g-3">
+      <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+          <div>
+            <div class="stat-value text-primary">{{ house_stats.total_houses or 0 }}</div>
+            <div class="stat-label">Total Houses</div>
+          </div>
+          <div class="stat-icon primary"><i class="bi bi-building"></i></div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+          <div>
+            <div class="stat-value text-info">{{ house_stats.under_construction or 0 }}</div>
+            <div class="stat-label">Under Construction</div>
+          </div>
+          <div class="stat-icon info"><i class="bi bi-tools"></i></div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+          <div>
+            <div class="stat-value text-secondary">{{ house_stats.planned or 0 }}</div>
+            <div class="stat-label">Planned / Pre-start</div>
+          </div>
+          <div class="stat-icon primary"><i class="bi bi-clock"></i></div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+          <div>
+            <div class="stat-value text-success">{{ house_stats.completed or 0 }}</div>
+            <div class="stat-label">Completed Houses</div>
+          </div>
+          <div class="stat-icon success"><i class="bi bi-check2-all"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inventory & Personnel Statistics -->
+  <div class="col-12">
+    <h6 class="text-uppercase fw-bold text-muted small mb-2 mt-2"><i class="bi bi-boxes me-1 text-warning"></i>Inventory & Personnel Metrics</h6>
+    <div class="row g-3">
+      <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+          <div>
+            <div class="stat-value text-dark">{{ inv_stats.total_materials or 0 }}</div>
+            <div class="stat-label">Master Materials</div>
+          </div>
+          <div class="stat-icon primary"><i class="bi bi-boxes"></i></div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+          <div>
+            <div class="stat-value text-warning">{{ inv_stats.low_stock or 0 }}</div>
+            <div class="stat-label">Low Stock Alerts</div>
+          </div>
+          <div class="stat-icon warning"><i class="bi bi-exclamation-triangle"></i></div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+          <div>
+            <div class="stat-value text-danger">{{ inv_stats.out_of_stock or 0 }}</div>
+            <div class="stat-label">Out of Stock</div>
+          </div>
+          <div class="stat-icon danger"><i class="bi bi-slash-circle"></i></div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+          <div>
+            <div class="stat-value text-danger">{{ pending_updates_total }}</div>
+            <div class="stat-label">Pending Builder Updates</div>
+          </div>
+          <div class="stat-icon danger"><i class="bi bi-hourglass-split"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Low Stock & Out of Stock Alerts Box (If any) -->
+{% if low_stock_items %}
+<div class="card border-warning mb-4 shadow-sm">
+  <div class="card-header bg-warning bg-opacity-10 d-flex justify-content-between align-items-center py-2.5">
+    <div class="fw-bold text-dark d-flex align-items-center">
+      <i class="bi bi-exclamation-triangle-fill text-warning me-2 fs-5"></i>
+      <span>Material Stock Level Alerts (Action Required)</span>
+    </div>
+    <a href="{{ url_for('inward') }}" class="btn btn-sm btn-warning text-dark fw-semibold">
+      <i class="bi bi-box-arrow-in-down me-1"></i>Receive Inward Stock
+    </a>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Material Name</th>
+            <th>Category</th>
+            <th>Current Stock</th>
+            <th>Minimum Level</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in low_stock_items[:6] %}
+          <tr>
+            <td class="fw-semibold text-dark">{{ item.material_name }}</td>
+            <td><span class="badge bg-light text-dark border">{{ item.category }}</span></td>
+            <td class="fw-bold font-monospace {% if item.stock_status == 'OUT OF STOCK' %}text-danger{% else %}text-warning{% endif %}">
+              {{ item.available_quantity }} {{ item.unit }}
+            </td>
+            <td class="font-monospace text-muted">{{ item.minimum_stock_level }} {{ item.unit }}</td>
+            <td>
+              {% if item.stock_status == 'OUT OF STOCK' %}
+                <span class="badge badge-out-of-stock">OUT OF STOCK</span>
+              {% else %}
+                <span class="badge badge-low-stock">LOW STOCK</span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{{ url_for('inward') }}" class="btn btn-sm btn-outline-primary py-0 px-2" title="Inward Material">
+                <i class="bi bi-plus-lg"></i> Inward
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Visual Charts Row -->
+<div class="row g-3 mb-4">
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center">
+        <i class="bi bi-pie-chart me-2 text-primary"></i>
+        <span>House Status Breakdown</span>
+      </div>
+      <div class="card-body d-flex align-items-center justify-content-center" style="position: relative; height: 250px;">
+        <canvas id="houseStatusChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center">
+        <i class="bi bi-pie-chart-fill me-2 text-warning"></i>
+        <span>Material Stock Status</span>
+      </div>
+      <div class="card-body d-flex align-items-center justify-content-center" style="position: relative; height: 250px;">
+        <canvas id="invStatusChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center">
+        <i class="bi bi-bar-chart me-2 text-info"></i>
+        <span>Construction Stage Distribution</span>
+      </div>
+      <div class="card-body" style="position: relative; height: 250px;">
+        <canvas id="stageDistChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Construction Progress Overview Table -->
+<div class="card mb-4 shadow-sm">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="fw-bold text-dark">
+      <i class="bi bi-building-gear me-2 text-primary"></i>Construction Progress Overview
+    </div>
+    <a href="{{ url_for('houses') }}" class="btn btn-sm btn-outline-secondary">View All Houses</a>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>House Number</th>
+            <th>Type & Location</th>
+            <th>Assigned Builder</th>
+            <th>Current Stage</th>
+            <th style="min-width: 180px;">Progress</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for house in houses_overview %}
+          <tr>
+            <td>
+              <span class="fw-bold text-primary font-monospace">{{ house.house_number }}</span>
+            </td>
+            <td>
+              <div class="fw-medium text-dark">{{ house.house_type }} ({{ house.bhk }})</div>
+              <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ house.location }}</small>
+            </td>
+            <td>
+              {% if house.assigned_builders %}
+                <span class="badge bg-light text-dark border"><i class="bi bi-person me-1"></i>{{ house.assigned_builders }}</span>
+              {% else %}
+                <span class="text-muted small fst-italic">Unassigned</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge badge-stage">{{ house.construction_stage }}</span>
+            </td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="progress flex-grow-1">
+                  <div class="progress-bar {% if house.progress_pct >= 100 %}bg-success{% elif house.progress_pct > 50 %}bg-info{% else %}bg-primary{% endif %}" 
+                       role="progressbar" style="width: {{ house.progress_pct }}%;" 
+                       aria-valuenow="{{ house.progress_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <span class="small fw-semibold text-muted font-monospace">{{ house.progress_pct }}%</span>
+              </div>
+            </td>
+            <td>
+              {% if house.status == 'Completed' %}
+                <span class="badge bg-success">Completed</span>
+              {% elif house.status == 'Under Construction' %}
+                <span class="badge bg-primary">Under Construction</span>
+              {% elif house.status == 'On Hold' %}
+                <span class="badge bg-danger">On Hold</span>
+              {% else %}
+                <span class="badge bg-secondary">Planned</span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{{ url_for('house_details', house_id=house.house_id) }}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-eye"></i> Details
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Builder Submissions Section -->
+<div class="row g-3">
+  <!-- Recent Construction Progress Updates -->
+  <div class="col-lg-6">
+    <div class="card h-100 shadow-sm">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-bold text-dark"><i class="bi bi-cone me-2 text-warning"></i>Recent Construction Progress Updates</span>
+        <a href="{{ url_for('builder_updates') }}" class="btn btn-sm btn-outline-primary">Review Queue</a>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>House</th>
+                <th>Builder</th>
+                <th>Stage & Progress</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for cu in recent_const_updates %}
+              <tr>
+                <td class="fw-semibold text-primary font-monospace">{{ cu.house_number }}</td>
+                <td class="small">{{ cu.builder_name }}</td>
+                <td>
+                  <span class="badge bg-light text-dark border me-1">{{ cu.stage }}</span>
+                  <span class="small font-monospace">{{ cu.progress_pct }}%</span>
+                </td>
+                <td class="small text-muted">{{ cu.update_date }}</td>
+                <td>
+                  {% if cu.status == 'APPROVED' %}
+                    <span class="badge bg-success">Approved</span>
+                  {% elif cu.status == 'PENDING' %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                  {% else %}
+                    <span class="badge bg-danger">Rejected</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Material Stock Updates -->
+  <div class="col-lg-6">
+    <div class="card h-100 shadow-sm">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-bold text-dark"><i class="bi bi-boxes me-2 text-info"></i>Recent Material Stock / Usage Updates</span>
+        <a href="{{ url_for('builder_updates') }}" class="btn btn-sm btn-outline-primary">Review Queue</a>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>House</th>
+                <th>Builder</th>
+                <th>Material & Used</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for su in recent_stock_updates %}
+              <tr>
+                <td class="fw-semibold text-primary font-monospace">{{ su.house_number }}</td>
+                <td class="small">{{ su.builder_name }}</td>
+                <td>
+                  <div class="fw-medium small">{{ su.material_name }}</div>
+                  <div class="text-danger small fw-semibold font-monospace">Used: {{ su.material_used }} {{ su.unit }}</div>
+                </td>
+                <td class="small text-muted">{{ su.update_date }}</td>
+                <td>
+                  {% if su.status == 'APPROVED' %}
+                    <span class="badge bg-success">Approved</span>
+                  {% elif su.status == 'PENDING' %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                  {% else %}
+                    <span class="badge bg-danger">Rejected</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const houseStats = {{ house_stats | tojson | safe }};
+    const invStats = {{ inv_stats | tojson | safe }};
+    const stageData = {{ stage_dist | tojson | safe }};
+    initDashboardCharts(houseStats, invStats, stageData);
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,373 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Builder Submissions & Approval Queue{% endblock %}
+{% block page_title %}Site Engineer Updates & Approval Management System{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white p-0">
+    <ul class="nav nav-tabs card-header-tabs m-0 px-3 pt-2" id="approvalTabs" role="tablist">
+      <li class="nav-item">
+        <button class="nav-link active fw-semibold" id="const-tab" data-bs-toggle="tab" data-bs-target="#constUpdates" type="button" role="tab">
+          <i class="bi bi-tools me-1 text-primary"></i>Construction Progress Queue
+          {% if pending_const|length > 0 %}
+            <span class="badge bg-danger ms-1 font-monospace">{{ pending_const|length }}</span>
+          {% endif %}
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link fw-semibold" id="stock-tab" data-bs-toggle="tab" data-bs-target="#stockUpdates" type="button" role="tab">
+          <i class="bi bi-boxes me-1 text-warning"></i>Material Stock & Usage Queue
+          {% if pending_stock|length > 0 %}
+            <span class="badge bg-danger ms-1 font-monospace">{{ pending_stock|length }}</span>
+          {% endif %}
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link fw-semibold text-muted" id="history-tab" data-bs-toggle="tab" data-bs-target="#reviewedHistory" type="button" role="tab">
+          <i class="bi bi-archive me-1"></i>Approved / Rejected Archive
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <div class="card-body p-0">
+    <div class="tab-content" id="approvalTabContent">
+
+      <!-- Tab 1: Construction Progress Queue -->
+      <div class="tab-pane fade show active p-3" id="constUpdates" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h6 class="fw-bold mb-0 text-dark">Pending Construction Stage & Progress Updates</h6>
+            <small class="text-muted">Review builder progress submissions. Approving updates will automatically update official house stage and completion percentage.</small>
+          </div>
+          <span class="badge bg-warning text-dark font-monospace">{{ pending_const|length }} Awaiting Review</span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Date</th>
+                <th>House</th>
+                <th>Builder</th>
+                <th>Target Stage</th>
+                <th>Progress %</th>
+                <th>Work Completed & Pending</th>
+                <th>Site Remarks</th>
+                <th class="text-end">Admin Decision</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for u in pending_const %}
+              <tr>
+                <td class="small text-muted">{{ u.update_date }}</td>
+                <td>
+                  <span class="fw-bold font-monospace text-primary">{{ u.house_number }}</span>
+                  <div class="small text-muted">{{ u.location }}</div>
+                </td>
+                <td>
+                  <div class="fw-medium small text-dark">{{ u.builder_name }}</div>
+                  <small class="text-muted">{{ u.builder_email }}</small>
+                </td>
+                <td><span class="badge badge-stage">{{ u.stage }}</span></td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="progress flex-grow-1" style="width: 80px; height: 6px;">
+                      <div class="progress-bar bg-primary" style="width: {{ u.progress_pct }}%;"></div>
+                    </div>
+                    <span class="small font-monospace fw-bold">{{ u.progress_pct }}%</span>
+                  </div>
+                </td>
+                <td class="small">
+                  <div class="text-success"><i class="bi bi-check-circle me-1"></i><strong>Done:</strong> {{ u.work_completed or '-' }}</div>
+                  <div class="text-secondary"><i class="bi bi-hourglass me-1"></i><strong>Pending:</strong> {{ u.work_pending or '-' }}</div>
+                </td>
+                <td class="small text-muted">{{ u.remarks or '-' }}</td>
+                <td class="text-end">
+                  <div class="btn-group btn-group-sm">
+                    <!-- Approve Button -->
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#approveConstModal{{ u.update_id }}">
+                      <i class="bi bi-check-lg"></i> Approve
+                    </button>
+                    <!-- Reject Button -->
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectConstModal{{ u.update_id }}">
+                      <i class="bi bi-x-lg"></i> Reject
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Approve Construction Modal -->
+              <div class="modal fade" id="approveConstModal{{ u.update_id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <form action="{{ url_for('approve_construction_update', update_id=u.update_id) }}" method="POST">
+                      <div class="modal-header">
+                        <h6 class="modal-title fw-bold text-success"><i class="bi bi-check-circle me-2"></i>Approve Construction Progress</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <p class="small">
+                          Approving this update will update <strong>{{ u.house_number }}</strong> to stage 
+                          <span class="badge badge-stage">{{ u.stage }}</span> and progress <strong>{{ u.progress_pct }}%</strong>.
+                        </p>
+                        <div class="mb-3">
+                          <label class="form-label small fw-semibold">Admin Verification Notes</label>
+                          <input type="text" name="review_notes" class="form-control form-control-sm" value="Verified on site and approved.">
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-sm btn-success">Confirm Approval</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Reject Construction Modal -->
+              <div class="modal fade" id="rejectConstModal{{ u.update_id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <form action="{{ url_for('reject_construction_update', update_id=u.update_id) }}" method="POST">
+                      <div class="modal-header">
+                        <h6 class="modal-title fw-bold text-danger"><i class="bi bi-x-circle me-2"></i>Reject Construction Update</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <p class="small text-danger mb-2">This update will be marked as REJECTED. Official house data will NOT change.</p>
+                        <div class="mb-3">
+                          <label class="form-label small fw-semibold">Reason for Rejection *</label>
+                          <textarea name="review_notes" class="form-control form-control-sm" rows="2" placeholder="e.g. Stage milestones incomplete, curing period pending..." required></textarea>
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-sm btn-danger">Confirm Rejection</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              {% else %}
+              <tr>
+                <td colspan="8" class="text-center text-muted py-4">No pending construction progress updates in queue.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 2: Material Stock & Usage Queue -->
+      <div class="tab-pane fade p-3" id="stockUpdates" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h6 class="fw-bold mb-0 text-dark">Pending Material Stock & Consumption Updates</h6>
+            <small class="text-muted">Review site material usage submissions. Only APPROVED usage updates will deduct official warehouse inventory and log transaction history.</small>
+          </div>
+          <span class="badge bg-warning text-dark font-monospace">{{ pending_stock|length }} Awaiting Review</span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Date</th>
+                <th>House</th>
+                <th>Builder</th>
+                <th>Material</th>
+                <th>Opening</th>
+                <th>Received</th>
+                <th>Quantity Used</th>
+                <th>Remaining</th>
+                <th>Site Stock vs Warehouse</th>
+                <th class="text-end">Admin Decision</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for su in pending_stock %}
+              <tr>
+                <td class="small text-muted">{{ su.update_date }}</td>
+                <td>
+                  <span class="fw-bold font-monospace text-primary">{{ su.house_number }}</span>
+                  <div class="small text-muted">{{ su.location }}</div>
+                </td>
+                <td class="small fw-medium">{{ su.builder_name }}</td>
+                <td class="fw-semibold text-dark">{{ su.material_name }}</td>
+                <td class="small font-monospace">{{ su.opening_stock }} {{ su.unit }}</td>
+                <td class="small font-monospace text-primary">+{{ su.material_received }} {{ su.unit }}</td>
+                <td class="font-monospace fw-bold text-danger">{{ su.material_used }} {{ su.unit }}</td>
+                <td class="small font-monospace fw-bold">{{ su.remaining_stock }} {{ su.unit }}</td>
+                <td>
+                  <span class="small text-muted">Warehouse Avail:</span>
+                  <span class="badge {% if su.available_quantity < su.material_used %}bg-danger{% else %}bg-success{% endif %} font-monospace">
+                    {{ su.available_quantity }} {{ su.unit }}
+                  </span>
+                </td>
+                <td class="text-end">
+                  <div class="btn-group btn-group-sm">
+                    <!-- Approve Button -->
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#approveStockModal{{ su.stock_update_id }}">
+                      <i class="bi bi-check-lg"></i> Approve
+                    </button>
+                    <!-- Reject Button -->
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectStockModal{{ su.stock_update_id }}">
+                      <i class="bi bi-x-lg"></i> Reject
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Approve Stock Modal -->
+              <div class="modal fade" id="approveStockModal{{ su.stock_update_id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <form action="{{ url_for('approve_stock_update', stock_update_id=su.stock_update_id) }}" method="POST">
+                      <div class="modal-header">
+                        <h6 class="modal-title fw-bold text-success"><i class="bi bi-check-circle me-2"></i>Approve Material Stock Usage</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <p class="small">
+                          Approving this update will officially deduct <strong>{{ su.material_used }} {{ su.unit }}</strong> of 
+                          <strong>{{ su.material_name }}</strong> from official warehouse inventory and log an <code>OUT</code> transaction.
+                        </p>
+                        <div class="mb-3">
+                          <label class="form-label small fw-semibold">Admin Verification Notes</label>
+                          <input type="text" name="review_notes" class="form-control form-control-sm" value="Approved and verified site consumption.">
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-sm btn-success">Confirm Approval</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Reject Stock Modal -->
+              <div class="modal fade" id="rejectStockModal{{ su.stock_update_id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <form action="{{ url_for('reject_stock_update', stock_update_id=su.stock_update_id) }}" method="POST">
+                      <div class="modal-header">
+                        <h6 class="modal-title fw-bold text-danger"><i class="bi bi-x-circle me-2"></i>Reject Material Stock Update</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <p class="small text-danger mb-2">This update will be marked as REJECTED. No warehouse inventory will be deducted.</p>
+                        <div class="mb-3">
+                          <label class="form-label small fw-semibold">Reason for Rejection *</label>
+                          <textarea name="review_notes" class="form-control form-control-sm" rows="2" placeholder="e.g. Discrepancy in recorded site consumption..." required></textarea>
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-sm btn-danger">Confirm Rejection</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              {% else %}
+              <tr>
+                <td colspan="10" class="text-center text-muted py-4">No pending material stock or usage updates in queue.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 3: Reviewed History / Audit Archive -->
+      <div class="tab-pane fade p-3" id="reviewedHistory" role="tabpanel">
+        <h6 class="fw-bold mb-3 text-dark">Reviewed Audit History (Recent 20 Decisions)</h6>
+        
+        <div class="mb-4">
+          <div class="fw-semibold small text-muted text-uppercase mb-2">Construction Progress Decisions</div>
+          <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>House</th>
+                  <th>Builder</th>
+                  <th>Stage & Progress</th>
+                  <th>Decision</th>
+                  <th>Reviewer</th>
+                  <th>Review Notes</th>
+                  <th>Review Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in reviewed_const %}
+                <tr>
+                  <td class="font-monospace fw-bold">{{ r.house_number }}</td>
+                  <td class="small">{{ r.builder_name }}</td>
+                  <td><span class="badge badge-stage">{{ r.stage }}</span> {{ r.progress_pct }}%</td>
+                  <td>
+                    {% if r.status == 'APPROVED' %}
+                      <span class="badge bg-success">Approved</span>
+                    {% else %}
+                      <span class="badge bg-danger">Rejected</span>
+                    {% endif %}
+                  </td>
+                  <td class="small">{{ r.reviewer_name or 'Admin' }}</td>
+                  <td class="small text-muted">{{ r.review_notes or '-' }}</td>
+                  <td class="small text-muted">{{ r.review_date }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center text-muted">No review history.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <div class="fw-semibold small text-muted text-uppercase mb-2">Material Stock Decisions</div>
+          <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>House</th>
+                  <th>Builder</th>
+                  <th>Material & Quantity Used</th>
+                  <th>Decision</th>
+                  <th>Reviewer</th>
+                  <th>Review Notes</th>
+                  <th>Review Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for rs in reviewed_stock %}
+                <tr>
+                  <td class="font-monospace fw-bold">{{ rs.house_number }}</td>
+                  <td class="small">{{ rs.builder_name }}</td>
+                  <td>{{ rs.material_name }} ({{ rs.material_used }} {{ rs.unit }})</td>
+                  <td>
+                    {% if rs.status == 'APPROVED' %}
+                      <span class="badge bg-success">Approved</span>
+                    {% else %}
+                      <span class="badge bg-danger">Rejected</span>
+                    {% endif %}
+                  </td>
+                  <td class="small">{{ rs.reviewer_name or 'Admin' }}</td>
+                  <td class="small text-muted">{{ rs.review_notes or '-' }}</td>
+                  <td class="small text-muted">{{ rs.review_date }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center text-muted">No review history.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

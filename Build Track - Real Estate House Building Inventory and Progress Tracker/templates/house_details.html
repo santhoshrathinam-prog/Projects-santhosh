@@ -1,0 +1,373 @@
+﻿{% extends "base.html" %}
+
+{% block title %}House {{ house.house_number }} Details{% endblock %}
+{% block page_title %}House {{ house.house_number }} - Specification & Construction Overview{% endblock %}
+
+{% block content %}
+<!-- Top House Information Card -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+    <div>
+      <span class="badge bg-primary fs-6 font-monospace me-2">{{ house.house_number }}</span>
+      <span class="fs-5 fw-bold text-dark">{{ house.house_type }} ({{ house.bhk }})</span>
+      <span class="badge {% if house.status == 'Completed' %}bg-success{% elif house.status == 'Under Construction' %}bg-primary{% elif house.status == 'On Hold' %}bg-danger{% else %}bg-secondary{% endif %} ms-2">
+        {{ house.status }}
+      </span>
+    </div>
+    <div>
+      {% if session.get('role') == 'admin' %}
+        <a href="{{ url_for('houses') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Houses</a>
+      {% else %}
+        <a href="{{ url_for('builder_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Dashboard</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-3 col-sm-6">
+        <div class="text-muted small">Total Floor Area</div>
+        <div class="fw-bold fs-6">{{ house.area_sqft }} sq.ft</div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="text-muted small">Site Location</div>
+        <div class="fw-medium text-dark"><i class="bi bi-geo-alt text-danger me-1"></i>{{ house.location }}</div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="text-muted small">Current Stage</div>
+        <div><span class="badge badge-stage">{{ house.construction_stage }}</span></div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="text-muted small">Overall Progress</div>
+        <div class="d-flex align-items-center gap-2 mt-1">
+          <div class="progress flex-grow-1" style="height: 8px;">
+            <div class="progress-bar {% if house.progress_pct >= 100 %}bg-success{% elif house.progress_pct > 50 %}bg-info{% else %}bg-primary{% endif %}" 
+                 style="width: {{ house.progress_pct }}%;"></div>
+          </div>
+          <span class="fw-bold font-monospace small">{{ house.progress_pct }}%</span>
+        </div>
+      </div>
+
+      <div class="col-md-3 col-sm-6">
+        <div class="text-muted small">Project Start Date</div>
+        <div class="fw-medium">{{ house.start_date or 'Not scheduled' }}</div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="text-muted small">Expected Handover</div>
+        <div class="fw-medium">{{ house.expected_completion_date or 'TBD' }}</div>
+      </div>
+      <div class="col-md-6">
+        <div class="text-muted small">Notes / Scope</div>
+        <div class="text-muted small">{{ house.notes or 'Standard structural specifications.' }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Assigned Builders Section -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center py-2.5">
+    <span class="fw-bold text-dark"><i class="bi bi-person-badge text-primary me-2"></i>Assigned Builders & Site Engineers</span>
+    {% if session.get('role') == 'admin' %}
+      <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#assignBuilderModal">
+        <i class="bi bi-person-plus me-1"></i>Assign Engineer
+      </button>
+    {% endif %}
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Builder Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Assigned Date</th>
+            <th>Assignment Scope</th>
+            {% if session.get('role') == 'admin' %}<th class="text-end">Action</th>{% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in assigned_builders %}
+          <tr>
+            <td class="fw-semibold text-dark"><i class="bi bi-person-check text-success me-1"></i>{{ b.builder_name }}</td>
+            <td class="small">{{ b.email }}</td>
+            <td class="small font-monospace">{{ b.phone }}</td>
+            <td class="small text-muted">{{ b.assigned_date }}</td>
+            <td class="small text-muted">{{ b.notes or 'Site supervision' }}</td>
+            {% if session.get('role') == 'admin' %}
+            <td class="text-end">
+              <form action="{{ url_for('remove_builder_assignment', assignment_id=b.assignment_id) }}" method="POST" class="d-inline" onsubmit="return confirm('Remove builder assignment for this house?');">
+                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Remove Assignment">
+                  <i class="bi bi-x-circle"></i> Remove
+                </button>
+              </form>
+            </td>
+            {% endif %}
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6" class="text-center text-muted py-3">No builders actively assigned to this house.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- House Material Requirements Summary -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center py-2.5">
+    <div>
+      <span class="fw-bold text-dark"><i class="bi bi-clipboard-data text-warning me-2"></i>House-Wise Material Requirements & Actual Site Usage</span>
+    </div>
+    {% if session.get('role') == 'admin' %}
+      <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addReqModal">
+        <i class="bi bi-plus-circle me-1"></i>Define Requirement
+      </button>
+    {% endif %}
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Material Name</th>
+            <th>Category</th>
+            <th>Unit</th>
+            <th>Required Quantity</th>
+            <th>Approved Used Quantity</th>
+            <th>Remaining Quantity</th>
+            <th>Status</th>
+            {% if session.get('role') == 'admin' %}<th class="text-end">Action</th>{% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for req in material_summary %}
+          <tr>
+            <td class="fw-semibold text-dark">{{ req.material_name }}</td>
+            <td><span class="badge bg-light text-dark border">{{ req.category }}</span></td>
+            <td class="text-muted small">{{ req.unit }}</td>
+            <td class="fw-bold font-monospace text-primary">{{ req.required_quantity }}</td>
+            <td class="fw-bold font-monospace text-success">{{ req.approved_used_quantity }}</td>
+            <td class="fw-bold font-monospace {% if req.remaining_quantity <= 0 %}text-muted{% else %}text-danger{% endif %}">
+              {{ req.remaining_quantity }}
+            </td>
+            <td>
+              {% if req.req_status == 'COMPLETED' %}
+                <span class="badge bg-success"><i class="bi bi-check2-all me-1"></i>Fulfilled</span>
+              {% elif req.req_status == 'IN PROGRESS' %}
+                <span class="badge bg-info"><i class="bi bi-clock-history me-1"></i>In Progress</span>
+              {% else %}
+                <span class="badge bg-secondary">Not Started</span>
+              {% endif %}
+            </td>
+            {% if session.get('role') == 'admin' %}
+            <td class="text-end">
+              <form action="{{ url_for('delete_requirement', requirement_id=req.requirement_id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this material requirement?');">
+                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Delete Requirement">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </td>
+            {% endif %}
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="8" class="text-center text-muted py-4">No material requirements defined for this house yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Construction Updates Timeline for This House -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center py-2.5">
+    <span class="fw-bold text-dark"><i class="bi bi-tools text-primary me-2"></i>Construction Stage & Progress Submissions</span>
+    {% if session.get('role') == 'builder' %}
+      <a href="{{ url_for('builder_construction_update', house_id=house.house_id) }}" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Submit Progress
+      </a>
+    {% endif %}
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Date</th>
+            <th>Builder</th>
+            <th>Stage</th>
+            <th>Progress %</th>
+            <th>Work Completed</th>
+            <th>Work Pending</th>
+            <th>Remarks</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cu in const_updates %}
+          <tr>
+            <td class="small text-muted">{{ cu.update_date }}</td>
+            <td class="fw-medium small">{{ cu.builder_name }}</td>
+            <td><span class="badge badge-stage">{{ cu.stage }}</span></td>
+            <td class="font-monospace fw-bold">{{ cu.progress_pct }}%</td>
+            <td class="small">{{ cu.work_completed or '-' }}</td>
+            <td class="small">{{ cu.work_pending or '-' }}</td>
+            <td class="small text-muted">{{ cu.remarks or '-' }}</td>
+            <td>
+              {% if cu.status == 'APPROVED' %}
+                <span class="badge bg-success">Approved</span>
+              {% elif cu.status == 'PENDING' %}
+                <span class="badge bg-warning text-dark">Pending</span>
+              {% else %}
+                <span class="badge bg-danger">Rejected</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="8" class="text-center text-muted py-3">No construction progress updates logged for this house.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Stock Updates for This House -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white d-flex justify-content-between align-items-center py-2.5">
+    <span class="fw-bold text-dark"><i class="bi bi-boxes text-info me-2"></i>Site Material Stock & Usage Submissions</span>
+    {% if session.get('role') == 'builder' %}
+      <a href="{{ url_for('builder_stock_update', house_id=house.house_id) }}" class="btn btn-sm btn-warning text-dark fw-semibold">
+        <i class="bi bi-plus-lg me-1"></i>Submit Stock / Usage
+      </a>
+    {% endif %}
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Date</th>
+            <th>Builder</th>
+            <th>Material</th>
+            <th>Opening</th>
+            <th>Received</th>
+            <th>Used</th>
+            <th>Remaining</th>
+            <th>Remarks</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for su in stock_updates %}
+          <tr>
+            <td class="small text-muted">{{ su.update_date }}</td>
+            <td class="fw-medium small">{{ su.builder_name }}</td>
+            <td class="fw-semibold text-dark">{{ su.material_name }}</td>
+            <td class="font-monospace small">{{ su.opening_stock }} {{ su.unit }}</td>
+            <td class="font-monospace small text-primary">{{ su.material_received }} {{ su.unit }}</td>
+            <td class="font-monospace small text-danger fw-bold">{{ su.material_used }} {{ su.unit }}</td>
+            <td class="font-monospace small fw-bold">{{ su.remaining_stock }} {{ su.unit }}</td>
+            <td class="small text-muted">{{ su.remarks or '-' }}</td>
+            <td>
+              {% if su.status == 'APPROVED' %}
+                <span class="badge bg-success">Approved</span>
+              {% elif su.status == 'PENDING' %}
+                <span class="badge bg-warning text-dark">Pending</span>
+              {% else %}
+                <span class="badge bg-danger">Rejected</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="9" class="text-center text-muted py-3">No stock/usage updates logged for this house.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Assign Builder -->
+{% if session.get('role') == 'admin' %}
+<div class="modal fade" id="assignBuilderModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="{{ url_for('assign_builder_to_house', house_id=house.house_id) }}" method="POST">
+        <div class="modal-header">
+          <h6 class="modal-title fw-bold"><i class="bi bi-person-plus me-2 text-primary"></i>Assign Builder / Engineer</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Select Site Engineer *</label>
+            <select name="builder_id" class="form-select form-select-sm" required>
+              <option value="">-- Choose Active Builder --</option>
+              {% for b in all_builders %}
+                <option value="{{ b.builder_id }}">{{ b.builder_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Assignment Scope / Notes</label>
+            <input type="text" name="notes" class="form-control form-control-sm" placeholder="e.g. Lead Engineer for structural and brickwork execution">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-primary">Assign Engineer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Add Requirement -->
+<div class="modal fade" id="addReqModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="{{ url_for('add_requirement') }}" method="POST">
+        <input type="hidden" name="house_id" value="{{ house.house_id }}">
+        <div class="modal-header">
+          <h6 class="modal-title fw-bold"><i class="bi bi-clipboard-plus me-2 text-primary"></i>Define Material Requirement</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Select Material *</label>
+            <select name="material_id" class="form-select form-select-sm material-ajax-select" required>
+              <option value="">-- Choose Master Material --</option>
+              {% for m in available_materials %}
+                <option value="{{ m.material_id }}">{{ m.material_name }} ({{ m.category }}) - [{{ m.unit }}]</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Required Quantity * (<span class="material-unit-label">Units</span>)</label>
+            <input type="number" step="0.01" min="0.01" name="required_quantity" class="form-control form-control-sm" placeholder="e.g. 500" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Notes / Specification</label>
+            <input type="text" name="notes" class="form-control form-control-sm" placeholder="e.g. For foundation and column casting">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-primary">Save Requirement</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

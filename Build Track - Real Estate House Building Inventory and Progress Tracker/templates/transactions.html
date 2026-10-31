@@ -1,0 +1,165 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Inventory Transaction Ledger{% endblock %}
+{% block page_title %}Complete Inventory Transactions Ledger & Audit Trail{% endblock %}
+
+{% block content %}
+<!-- Metric Summary Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div>
+        <div class="stat-value text-success font-monospace">+{{ "%.2f"|format(total_in_qty) }}</div>
+        <div class="stat-label">Total Material Inward (Units)</div>
+      </div>
+      <div class="stat-icon success"><i class="bi bi-box-arrow-in-down"></i></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div>
+        <div class="stat-value text-danger font-monospace">-{{ "%.2f"|format(total_out_qty) }}</div>
+        <div class="stat-label">Total Material Consumption (Units)</div>
+      </div>
+      <div class="stat-icon danger"><i class="bi bi-box-arrow-up-right"></i></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div>
+        <div class="stat-value text-primary font-monospace">₹ {{ "{:,.2f}".format(total_cost_sum) }}</div>
+        <div class="stat-label">Total Transaction Financial Value</div>
+      </div>
+      <div class="stat-icon primary"><i class="bi bi-currency-rupee"></i></div>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <!-- Filter Bar -->
+    <form method="GET" action="{{ url_for('transactions') }}" class="row g-2 mb-3 pb-3 border-bottom">
+      <div class="col-md-2 col-sm-6">
+        <label class="form-label small fw-semibold text-muted">Movement Type</label>
+        <select name="type" class="form-select form-select-sm">
+          <option value="">All (IN & OUT)</option>
+          <option value="IN" {% if filter_type == 'IN' %}selected{% endif %}>IN (Inward)</option>
+          <option value="OUT" {% if filter_type == 'OUT' %}selected{% endif %}>OUT (Site Usage)</option>
+        </select>
+      </div>
+
+      <div class="col-md-2 col-sm-6">
+        <label class="form-label small fw-semibold text-muted">Material</label>
+        <select name="material_id" class="form-select form-select-sm">
+          <option value="">All Materials</option>
+          {% for m in materials %}
+            <option value="{{ m.material_id }}" {% if filter_material_id == m.material_id|string %}selected{% endif %}>{{ m.material_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2 col-sm-6">
+        <label class="form-label small fw-semibold text-muted">House / Site</label>
+        <select name="house_id" class="form-select form-select-sm">
+          <option value="">All Houses</option>
+          {% for h in houses %}
+            <option value="{{ h.house_id }}" {% if filter_house_id == h.house_id|string %}selected{% endif %}>{{ h.house_number }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2 col-sm-6">
+        <label class="form-label small fw-semibold text-muted">Site Engineer</label>
+        <select name="builder_id" class="form-select form-select-sm">
+          <option value="">All Builders</option>
+          {% for b in builders %}
+            <option value="{{ b.builder_id }}" {% if filter_builder_id == b.builder_id|string %}selected{% endif %}>{{ b.builder_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2 col-sm-6">
+        <label class="form-label small fw-semibold text-muted">Supplier</label>
+        <select name="supplier_id" class="form-select form-select-sm">
+          <option value="">All Suppliers</option>
+          {% for s in suppliers %}
+            <option value="{{ s.supplier_id }}" {% if filter_supplier_id == s.supplier_id|string %}selected{% endif %}>{{ s.supplier_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2 col-sm-6 d-flex align-items-end gap-1">
+        <button type="submit" class="btn btn-sm btn-primary flex-grow-1"><i class="bi bi-funnel me-1"></i>Filter</button>
+        <a href="{{ url_for('transactions') }}" class="btn btn-sm btn-outline-secondary" title="Reset"><i class="bi bi-arrow-counterclockwise"></i></a>
+        <a href="{{ url_for('export_csv', report_type='transactions') }}" class="btn btn-sm btn-success" title="Export to CSV"><i class="bi bi-filetype-csv"></i></a>
+      </div>
+    </form>
+
+    <!-- Ledger Table -->
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Tx ID</th>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Material</th>
+            <th>Quantity</th>
+            <th>Unit Price (₹)</th>
+            <th>Total Cost (₹)</th>
+            <th>House</th>
+            <th>Party (Supplier / Builder)</th>
+            <th>Purpose / Invoice</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tx in transactions %}
+          <tr>
+            <td class="font-monospace small text-muted">#TX-{{ "%04d"|format(tx.transaction_id) }}</td>
+            <td class="small text-muted">{{ tx.transaction_date }}</td>
+            <td>
+              {% if tx.transaction_type == 'IN' %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-arrow-down-left me-1"></i>IN</span>
+              {% else %}
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-arrow-up-right me-1"></i>OUT</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="fw-semibold text-dark">{{ tx.material_name }}</div>
+              <small class="text-muted">{{ tx.category }}</small>
+            </td>
+            <td class="font-monospace fw-bold {% if tx.transaction_type == 'IN' %}text-success{% else %}text-danger{% endif %}">
+              {% if tx.transaction_type == 'IN' %}+{% else %}-{% endif %}{{ tx.quantity }} {{ tx.unit }}
+            </td>
+            <td class="font-monospace small">₹ {{ "%.2f"|format(tx.unit_price) }}</td>
+            <td class="font-monospace fw-semibold">₹ {{ "%.2f"|format(tx.total_cost) }}</td>
+            <td>
+              {% if tx.house_number %}
+                <span class="badge bg-light text-dark border font-monospace">{{ tx.house_number }}</span>
+              {% else %}
+                <span class="text-muted small">Central Warehouse</span>
+              {% endif %}
+            </td>
+            <td class="small">
+              {% if tx.transaction_type == 'IN' %}
+                <i class="bi bi-truck text-muted me-1"></i>{{ tx.supplier_name or 'Direct' }}
+              {% else %}
+                <i class="bi bi-person text-muted me-1"></i>{{ tx.builder_name or 'Site' }}
+              {% endif %}
+            </td>
+            <td class="small">
+              <div class="text-dark">{{ tx.purpose or '-' }}</div>
+              {% if tx.invoice_number %}<small class="text-muted font-monospace">Inv: {{ tx.invoice_number }}</small>{% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="10" class="text-center text-muted py-4">No transactions found matching your criteria.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -29,6 +29,7 @@ COLOR_SUCCESS         = RGBColor(22, 101, 52)     # #166534 - Forest Green Accen
 COLOR_SUCCESS_LIGHT   = RGBColor(220, 252, 231)   # #DCFCE7 - Fresh Mint Tint
 
 GITHUB_REPO_URL = "https://github.com/santhoshrathinam-prog/Projects-santhosh"
+GITHUB_PROJECT_URL = "https://github.com/santhoshrathinam-prog/Projects-santhosh/tree/main/Build%20Track%20-%20Real%20Estate%20House%20Building%20Inventory%20and%20Progress%20Tracker"
 
 SLIDE_WIDTH_INCHES  = 13.333
 SLIDE_HEIGHT_INCHES = 7.5
@@ -245,47 +246,55 @@ def add_bullet_item(tf, title, desc, space_after=Pt(3), font_size=Pt(10), bullet
 
 def add_github_card(slide, left, top, width, height, sub_desc="Direct link to official open-source capstone repository:"):
     add_elevated_card(slide, left, top, width, height, border_color=COLOR_PRIMARY, border_width=1.5)
-    tb, tf = add_custom_textbox(slide, left + Inches(0.2), top + Inches(0.18), width - Inches(0.4), height - Inches(0.35))
-    
+    tb, tf = add_custom_textbox(slide, left + Inches(0.2), top + Inches(0.12), width - Inches(0.4), height - Inches(0.24))
+
     p1 = tf.paragraphs[0]
     r1 = p1.add_run()
-    r1.text = "OFFICIAL GITHUB REPOSITORY"
+    r1.text = "OFFICIAL GITHUB PROJECT REPOSITORY"
     r1.font.name = 'Calibri'; r1.font.size = Pt(11); r1.font.bold = True; r1.font.color.rgb = COLOR_PRIMARY_DARK
-    
+
     p2 = tf.add_paragraph()
     p2.space_before = Pt(2)
     r2 = p2.add_run()
     r2.text = sub_desc
-    r2.font.name = 'Calibri'; r2.font.size = Pt(9.5); r2.font.color.rgb = COLOR_TEXT_MUTED
-    
+    r2.font.name = 'Calibri'; r2.font.size = Pt(9); r2.font.color.rgb = COLOR_TEXT_MUTED
+
+    # Dedicated Project Folder Link
     p3 = tf.add_paragraph()
-    p3.space_before = Pt(4)
+    p3.space_before = Pt(3)
+    r3_lbl = p3.add_run()
+    r3_lbl.text = "[Project Folder]  "
+    r3_lbl.font.name = 'Calibri'; r3_lbl.font.size = Pt(9.5); r3_lbl.font.bold = True; r3_lbl.font.color.rgb = COLOR_TEXT_DARK
+
     r3 = p3.add_run()
-    r3.text = f"🔗  {GITHUB_REPO_URL}"
-    r3.font.name = 'Consolas'; r3.font.size = Pt(10.5); r3.font.bold = True; r3.font.color.rgb = COLOR_PRIMARY
-    
+    if width > Inches(6.5):
+        r3.text = GITHUB_PROJECT_URL
+        r3.font.size = Pt(8.5)
+    else:
+        r3.text = "github.com/.../Build Track - Real Estate Inventory Tracker"
+        r3.font.size = Pt(9)
+    r3.font.name = 'Consolas'; r3.font.bold = True; r3.font.color.rgb = COLOR_PRIMARY
+    r3.font.underline = True
+    r3.hyperlink.address = GITHUB_PROJECT_URL
+
+    # Full Main Repository Link
     p4 = tf.add_paragraph()
     p4.space_before = Pt(2)
+    r4_lbl = p4.add_run()
+    r4_lbl.text = "[Main Repo]      "
+    r4_lbl.font.name = 'Calibri'; r4_lbl.font.size = Pt(9); r4_lbl.font.bold = True; r4_lbl.font.color.rgb = COLOR_TEXT_DARK
+
     r4 = p4.add_run()
-    r4.text = "(Click link above to open repository directly in browser)"
-    r4.font.name = 'Calibri'; r4.font.size = Pt(8.5); r4.font.italic = True; r4.font.color.rgb = COLOR_TEXT_MUTED
-    
+    r4.text = GITHUB_REPO_URL
+    r4.font.name = 'Consolas'; r4.font.size = Pt(9); r4.font.bold = True; r4.font.color.rgb = COLOR_SECONDARY
+    r4.font.underline = True
+    r4.hyperlink.address = GITHUB_REPO_URL
+
     p5 = tf.add_paragraph()
-    p5.space_before = Pt(3)
+    p5.space_before = Pt(2)
     r5 = p5.add_run()
-    r5.text = "•  Complete Repository: "
-    r5.font.name = 'Calibri'; r5.font.size = Pt(9); r5.font.bold = True; r5.font.color.rgb = COLOR_TEXT_DARK
-    r5b = p5.add_run()
-    r5b.text = "Source code, database schemas, and documentation."
-    r5b.font.name = 'Calibri'; r5b.font.size = Pt(9); r5b.font.color.rgb = COLOR_TEXT_MUTED
-    
-    p6 = tf.add_paragraph()
-    r6 = p6.add_run()
-    r6.text = "•  Open Access: "
-    r6.font.name = 'Calibri'; r6.font.size = Pt(9); r6.font.bold = True; r6.font.color.rgb = COLOR_TEXT_DARK
-    r6b = p6.add_run()
-    r6b.text = "Publicly accessible and auditable academic repository."
-    r6b.font.name = 'Calibri'; r6b.font.size = Pt(9); r6b.font.color.rgb = COLOR_TEXT_MUTED
+    r5.text = "* Complete Repository: Live Source Code, MySQL Schema, WebRTC Camera and Reports."
+    r5.font.name = 'Calibri'; r5.font.size = Pt(8.5); r5.font.color.rgb = COLOR_TEXT_MUTED
 
 def create_table_card(slide, left, top, width, height, headers, col_widths, rows_data):
     add_elevated_card(slide, left, top, width, height)
@@ -403,26 +412,38 @@ def build_slide_1(prs):
     rv3.text = "NOV 2026"
     rv3.font.name = 'Calibri'; rv3.font.size = Pt(14); rv3.font.bold = True; rv3.font.color.rgb = COLOR_TEXT_DARK
 
-    # Student Identification Card
-    card_stu = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(2.666), Inches(5.35), Inches(8.0), Inches(1.3))
+    # Student Identification Card with GitHub Project Link
+    card_stu = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(2.2), Inches(5.15), Inches(8.933), Inches(1.65))
     card_stu.fill.solid()
     card_stu.fill.fore_color.rgb = COLOR_PRIMARY_LIGHT
     card_stu.line.color.rgb = COLOR_PRIMARY
     card_stu.line.width = Pt(1.5)
 
-    tb_stu, tf_stu = add_custom_textbox(slide, Inches(2.666), Inches(5.45), Inches(8.0), Inches(1.1))
+    tb_stu, tf_stu = add_custom_textbox(slide, Inches(2.2), Inches(5.22), Inches(8.933), Inches(1.5))
 
     ps1 = tf_stu.paragraphs[0]
     ps1.alignment = PP_ALIGN.CENTER
     rs1 = ps1.add_run()
-    rs1.text = "ENROLMENT NUMBER :  EA2532251010685"
-    rs1.font.name = 'Calibri'; rs1.font.size = Pt(15); rs1.font.bold = True; rs1.font.color.rgb = COLOR_PRIMARY_DARK
+    rs1.text = "NAME OF STUDENT :  SANTHOSH RATHINAM M"
+    rs1.font.name = 'Calibri'; rs1.font.size = Pt(15); rs1.font.bold = True; rs1.font.color.rgb = COLOR_TEXT_DARK
 
     ps2 = tf_stu.add_paragraph()
     ps2.alignment = PP_ALIGN.CENTER
     rs2 = ps2.add_run()
-    rs2.text = "NAME OF STUDENT :  SANTHOSH RATHINAM M"
-    rs2.font.name = 'Calibri'; rs2.font.size = Pt(16); rs2.font.bold = True; rs2.font.color.rgb = COLOR_TEXT_DARK
+    rs2.text = "ENROLMENT NUMBER :  EA2532251010685"
+    rs2.font.name = 'Calibri'; rs2.font.size = Pt(14); rs2.font.bold = True; rs2.font.color.rgb = COLOR_PRIMARY_DARK
+
+    ps3 = tf_stu.add_paragraph()
+    ps3.space_before = Pt(3)
+    ps3.alignment = PP_ALIGN.CENTER
+    rs3_lbl = ps3.add_run()
+    rs3_lbl.text = "OFFICIAL GITHUB REPOSITORY :  "
+    rs3_lbl.font.name = 'Calibri'; rs3_lbl.font.size = Pt(10.5); rs3_lbl.font.bold = True; rs3_lbl.font.color.rgb = COLOR_PRIMARY_DARK
+    rs3 = ps3.add_run()
+    rs3.text = GITHUB_REPO_URL
+    rs3.font.name = 'Consolas'; rs3.font.size = Pt(11); rs3.font.bold = True; rs3.font.color.rgb = COLOR_PRIMARY
+    rs3.font.underline = True
+    rs3.hyperlink.address = GITHUB_PROJECT_URL
 
 def build_slide_2(prs):
     """Slide 2: Project Overview & Scope"""
@@ -1367,11 +1388,11 @@ def build_slide_18(prs):
     rty3.font.name = 'Calibri'; rty3.font.size = Pt(11); rty3.font.color.rgb = COLOR_TEXT_MUTED
 
     # Student Identification Card
-    card_stu = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(2.666), Inches(3.25), Inches(8.0), Inches(1.9))
+    card_stu = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(2.666), Inches(3.15), Inches(8.0), Inches(1.65))
     card_stu.fill.solid(); card_stu.fill.fore_color.rgb = COLOR_PRIMARY_LIGHT
     card_stu.line.color.rgb = COLOR_PRIMARY; card_stu.line.width = Pt(1.5)
 
-    tb_stu, tf_stu = add_custom_textbox(slide, Inches(2.666), Inches(3.35), Inches(8.0), Inches(1.7))
+    tb_stu, tf_stu = add_custom_textbox(slide, Inches(2.666), Inches(3.22), Inches(8.0), Inches(1.5))
 
     ps1 = tf_stu.paragraphs[0]; ps1.alignment = PP_ALIGN.CENTER
     rs1 = ps1.add_run(); rs1.text = "NAME OF STUDENT :  SANTHOSH RATHINAM M"
@@ -1383,14 +1404,15 @@ def build_slide_18(prs):
 
     ps3 = tf_stu.add_paragraph(); ps3.alignment = PP_ALIGN.CENTER
     rs3 = ps3.add_run(); rs3.text = "MASTER OF COMPUTER APPLICATIONS (MCA - III SEMESTER)"
-    rs3.font.name = 'Calibri'; rs3.font.size = Pt(12.5); rs3.font.bold = True; rs3.font.color.rgb = COLOR_SECONDARY
+    rs3.font.name = 'Calibri'; rs3.font.size = Pt(12); rs3.font.bold = True; rs3.font.color.rgb = COLOR_SECONDARY
 
     ps4 = tf_stu.add_paragraph(); ps4.alignment = PP_ALIGN.CENTER
     rs4 = ps4.add_run(); rs4.text = "Directorate of Online Education, SRM Institute of Science and Technology"
-    rs4.font.name = 'Calibri'; rs4.font.size = Pt(11); r_d = rs4.font.color.rgb = COLOR_TEXT_MUTED
+    rs4.font.name = 'Calibri'; rs4.font.size = Pt(10.5); rs4.font.color.rgb = COLOR_TEXT_MUTED
 
-    # GitHub Project Link Card at Bottom
-    add_github_card(slide, Inches(2.666), Inches(5.25), Inches(8.0), Inches(1.5), sub_desc="Official Open-Source Project Repository:")
+    # GitHub Project Link Card at Bottom (Prominent with Direct Folder Link)
+    add_github_card(slide, Inches(2.2), Inches(4.95), Inches(8.933), Inches(1.85),
+                    sub_desc="Direct links to official repository and project source folder on GitHub:")
 
 def main():
     print("Initializing PowerPoint Presentation (16:9 Widescreen)...")
